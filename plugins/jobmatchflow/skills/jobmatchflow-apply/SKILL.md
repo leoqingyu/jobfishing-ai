@@ -1,6 +1,6 @@
 ---
 name: jobmatchflow-apply
-description: Run JobMatchFlow application sessions using its MCP data and the current host's visible Chrome integration. Use when the user asks to check setup, sync a selected webmail inbox, review Preparing jobs, apply through an ATS or email, create application materials, or reconcile application outcomes. Do not use for unrelated career advice.
+description: Run JobMatchFlow application sessions using its MCP data and the current host's visible Chrome integration. Use when the user asks to check setup, sync a selected webmail inbox, review Saved jobs, apply through an ATS or email, create application materials, or reconcile application outcomes. Do not use for unrelated career advice.
 ---
 
 # JobMatchFlow Apply
@@ -33,6 +33,7 @@ Load only the reference needed for the current request. A full application sessi
 - If the user says JobMatchFlow data changed during the pulse, call `refresh_application_cache` again before continuing. Do not otherwise refresh repeatedly.
 - Read `list_tracking` before new submissions to avoid duplicates.
 - Prefer jobs whose `is_preparing` value is true.
+- Job data goes beyond the description. Use `contact` (name, email, phone the JD names; a field is absent when the JD does not give it) for the salutation and for email applications before searching the JD text. Check `visa_sponsorship_offered` and `work_permit_required` against `get_experience_context().work_authorization_status` and stop to ask the user when a job requires a permit they do not hold. `job_url_direct` is the employer's own posting when the App has it, `company_info` gives industry, size and website for the cover letter, and `salary` may be an estimate (`is_estimated`). Never present an estimate to an employer as a fact.
 - Use `get_experience_context().basic_info` for form identity and contact fields. A downloaded resume is an upload asset, not the authority for those fields.
 - If a resume conflicts with `basic_info`, warn the user to update the resume and state that the form uses `basic_info`.
 - App storage and download basenames may be opaque. Before an ATS or email attachment upload, create a clean local outbound copy according to [outbound-filenames.md](references/outbound-filenames.md). Never expose an App prefix, numeric ID, hash, UUID, timestamp, or storage key to the employer. Record the original App slot with `mark_applied` after a successful submission.

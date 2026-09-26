@@ -27,6 +27,7 @@ Tailored materials remain a separate explicit request. If the user explicitly wa
 
 - MCP-only access to JobMatchFlow; the frontend is never opened or operated.
 - `get_experience_context().basic_info` is the authority for identity and contact fields, even when an ATS auto-fills different values from a parsed resume.
+- Job data beyond the description: `contact` (name, email, phone from the JD, when present) for the greeting or recipient; `visa_sponsorship_offered` / `work_permit_required` checked against the user's work authorization (stop and ask when a job needs a permit they lack); `company_info` and `job_url_direct`. `salary` can be an estimate (`is_estimated`), never state it to an employer as fact.
 - `list_tracking` is read before new submissions to avoid duplicates; `mark_applied` is the only post-submission transition and stays idempotent.
 - Clean outbound filenames on every attachment, verified in the ATS/webmail UI before submit.
 - No passwords, OTPs, or auth links in application notes.

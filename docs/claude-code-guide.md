@@ -32,7 +32,7 @@ Before letting Claude Code start working, log in to JobMatchFlow and complete:
 3. Upload the resumes you plan to use;
 4. Check the file name shown for each resume in the App;
 5. Review your commonly used application Q&A;
-6. Move the jobs you plan to apply to into `Preparing`;
+6. Move the jobs you plan to apply to into `Saved`;
 7. Decide whether to explicitly authorize Claude Code to submit directly this round; the App has no separate auto-confirm toggle.
 
 Basic Info is the final source of truth for the name, address, phone, email, and other personal information on application forms. Users are responsible for the accuracy of what they enter.
@@ -43,13 +43,13 @@ If information in a resume is inconsistent with Basic Info, Claude Code should r
 
 Job filtering is a separate feature and will not automatically start submitting applications. For first-time use, send:
 
-> /jobmatchflow:jobmatchflow-rank First read my existing filtering preferences from Experience; if the information is insufficient, ask me multiple rounds of questions to understand my target direction, hard requirements, work preferences, and trade-off rules. Save the final confirmed preferences to Experience Agent Q&A, then review the Job List and add jobs that match my preferences to Preparing. Do not start submitting applications.
+> /jobmatchflow:jobmatchflow-rank First read my existing filtering preferences from Experience; if the information is insufficient, ask me multiple rounds of questions to understand my target direction, hard requirements, work preferences, and trade-off rules. Save the final confirmed preferences to Experience Agent Q&A, then review the Job List and add jobs that match my preferences to Saved. Do not start submitting applications.
 
 Claude Code will save the confirmed long-term preferences as `job_ranking_preferences_v1` in Experience Agent Q&A. This entry can be edited from the App front end.
 
 Every time this Skill is invoked afterward, Claude Code will first show a summary of the existing preferences and ask whether they need to be updated. Only after the user confirms the preferences will it read the full JD, App scores, match details, and hard thresholds to filter jobs. Jobs that are not selected are left as-is by default and are not automatically removed.
 
-If you only want to view the ranking without modifying Preparing, explicitly send:
+If you only want to view the ranking without modifying Saved, explicitly send:
 
 > /jobmatchflow:jobmatchflow-rank Only review and show the recommended results; do not modify the Job List.
 
@@ -227,7 +227,7 @@ The expected result looks similar to:
 JobMatchFlow connection: ready
 JobMatchFlow authorization: ready
 Candidate profile: ready
-Preparing jobs: ready (N)
+Saved jobs: ready (N)
 Resume library: ready (N)
 Outbound material filenames: ready
 Pulse cache: ready
@@ -312,15 +312,15 @@ If the user wants to complete both steps in one continuous task, they can also s
 
 `/jobmatchflow:jobmatchflow-apply-fast` is a leaner sibling of `jobmatchflow-apply` for when the user just wants to get through one job, or a handful, quickly — it is not a replacement for the standard entry point. It picks one resume for the whole pass instead of re-deliberating per job, uploads that resume first on any ATS that can parse and autofill from it, drafts and self-reviews the Cover Letter inline instead of dispatching a separate reviewer, and still stops before the final submit button unless direct submission is already on. LinkedIn Easy Apply routing (official posting first, verified email before or alongside Easy Apply) is not shortened in this path.
 
-> /jobmatchflow:jobmatchflow-apply-fast Use my resume #2 for this pass. Process these three Preparing jobs; stop before the final submit button on each.
+> /jobmatchflow:jobmatchflow-apply-fast Use my resume #2 for this pass. Process these three Saved jobs; stop before the final submit button on each.
 
 ## 8. First Trial Submission
 
 For the first time, it's recommended to process only a single job and stop before the final submission.
 
-First, place a test job into `Preparing` in JobMatchFlow, then send:
+First, place a test job into `Saved` in JobMatchFlow, then send:
 
-> /jobmatchflow:jobmatchflow-apply First sync the job-search inbox, then process one job from Preparing. This test does not need a tailored resume: use the most suitable existing resume in the App and generate a standard DOCX Cover Letter; stop before the final submit button — do not submit.
+> /jobmatchflow:jobmatchflow-apply First sync the job-search inbox, then process one job from Saved. This test does not need a tailored resume: use the most suitable existing resume in the App and generate a standard DOCX Cover Letter; stop before the final submit button — do not submit.
 
 Claude Code should:
 
@@ -345,7 +345,7 @@ Claude Code must see a success confirmation page or a sent email before it can m
 
 After the first trial submission succeeds, you can send:
 
-> /jobmatchflow:jobmatchflow-apply First sync the job-search inbox for everything after the last cutoff point, then process all Preparing jobs for this round. Direct submission is enabled; stop and ask me when you hit a CAPTCHA, MFA, a legal disclaimer, conflicting data, or a fact you can't determine.
+> /jobmatchflow:jobmatchflow-apply First sync the job-search inbox for everything after the last cutoff point, then process all Saved jobs for this round. Direct submission is enabled; stop and ask me when you hit a CAPTCHA, MFA, a legal disclaimer, conflicting data, or a fact you can't determine.
 
 Even with direct submission enabled, Claude Code should still pause in the following situations:
 
@@ -364,7 +364,7 @@ The user does not need to reinstall the plugin or re-copy resumes.
 
 Each time, you only need to:
 
-1. Update your profile, resumes, and Preparing jobs in JobMatchFlow;
+1. Update your profile, resumes, and Saved jobs in JobMatchFlow;
 2. Go into the same Job Applications directory;
 3. Run `claude --chrome`;
 4. Start a new task or clean up into a fresh round;
@@ -374,7 +374,7 @@ Each time, you only need to:
 
 A commonly used prompt:
 
-> /jobmatchflow:jobmatchflow-apply My JobMatchFlow profile and resumes have been updated. First sync the job-search inbox, then process all Preparing jobs for this round. Direct submission is enabled; stop and ask me whenever something needs my personal confirmation or action.
+> /jobmatchflow:jobmatchflow-apply My JobMatchFlow profile and resumes have been updated. First sync the job-search inbox, then process all Saved jobs for this round. Direct submission is enabled; stop and ask me whenever something needs my personal confirmation or action.
 
 The batch prompt above uses, by default, the App's existing resumes and a standard DOCX Cover Letter. If a particular job needs a tailored resume, run `/jobmatchflow:jobmatchflow-tailor` separately for that job first, and only hand it to `/jobmatchflow:jobmatchflow-apply` once both tailored materials are complete.
 
@@ -533,7 +533,7 @@ This is not a 24-hour monitoring task. Claude Code only works when the user acti
 
 | Skill | When to Use | Main Actions | What Gets Saved |
 | --- | --- | --- | --- |
-| `/jobmatchflow:jobmatchflow-rank` | To filter the Job List or add suitable jobs to Preparing | First time: multi-round questions about job-search preferences; afterward: confirm preferences first, then filter using App scores, the full JD, and match details | Confirmed preferences are saved to Experience Agent Q&A; Preparing is modified when the user requests it |
+| `/jobmatchflow:jobmatchflow-rank` | To filter the Job List or add suitable jobs to Saved | First time: multi-round questions about job-search preferences; afterward: confirm preferences first, then filter using App scores, the full JD, and match details | Confirmed preferences are saved to Experience Agent Q&A; Saved is modified when the user requests it |
 | `/jobmatchflow:jobmatchflow-apply` | Configuration checks, syncing the inbox, filling out the ATS, applying via company site/email/Easy Apply | Selects existing or tailored materials, operates Chrome, updates the Application after submission | Cover Letter, application status, complete submission records, original company link, and email/recruiting feedback are written to the App |
 | `/jobmatchflow:jobmatchflow-apply-fast` | A quick one-job or small-batch pass once setup is already done | Same as `apply`, but with one resume for the whole pass, ATS resume-parse autofill first, and an inline self-reviewed Cover Letter instead of a dispatched reviewer | Same write-back as `apply`; still stops before the final submit button |
 | `/jobmatchflow:jobmatchflow-cover-letter-fast` | Just want a Cover Letter, not a full application | Drafts and self-reviews one job-specific Cover Letter inline, renders a verified local DOCX, uploads to JobMatchFlow only on request | Nothing until the user asks to save it; no resume choice, no ATS, no browser |

@@ -8,7 +8,7 @@ JobMatchFlow stays the single source of truth for your profile, resumes, jobs, s
 
 | Skill | What it does |
 | --- | --- |
-| `jobmatchflow-rank` | Interviews you about job-search preferences, saves the confirmed profile, ranks untracked jobs, and shortlists qualified matches into Preparing. |
+| `jobmatchflow-rank` | Interviews you about job-search preferences, saves the confirmed profile, ranks untracked jobs, and shortlists qualified matches into Saved. |
 | `jobmatchflow-apply` | Runs application sessions: setup checks, inbox sync, ATS/email submission, and reconciling outcomes — using JobMatchFlow's MCP data and your visible Chrome. |
 | `jobmatchflow-apply-fast` | Leaner sibling of `jobmatchflow-apply` for a quick one-job or small-batch pass: picks one resume for the whole pulse, leans on ATS resume-parse autofill, drafts and self-reviews the cover letter inline instead of dispatching a reviewer, and still stops before the final submit. |
 | `jobmatchflow-tailor` | Produces a truthful, tailored CV and cover letter for one job, with multi-stage review, local LaTeX rendering, verification, and upload back to JobMatchFlow. |

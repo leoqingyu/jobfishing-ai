@@ -2,7 +2,7 @@ interface:
   display_name: "JobMatchFlow Apply"
   short_description: "Prepare and track applications in external Chrome"
   brand_color: "#2563EB"
-  default_prompt: "Use $jobmatchflow-apply. Confirm my JobMatchFlow profile and resumes are current, refresh this pulse's local cache, sync my job inbox, and continue my Preparing applications."
+  default_prompt: "Use $jobmatchflow-apply. Confirm my JobMatchFlow profile and resumes are current, refresh this pulse's local cache, sync my job inbox, and continue my Saved applications."
 
 dependencies:
   tools:

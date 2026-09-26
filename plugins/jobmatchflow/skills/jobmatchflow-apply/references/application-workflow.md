@@ -4,7 +4,7 @@
 
 1. Ask the user to confirm that Basic Info, Experience, and all resume files in JobMatchFlow are current. This confirmation is required once per new application pulse, not once per job.
 2. After confirmation, call `refresh_application_cache` exactly once. Use its cached profile, jobs, tracking, and resume files for the whole pulse.
-3. Build the duplicate check from cached tracking and select requested jobs from cached jobs, prioritizing `is_preparing=true`. Job List ranking and Preparing curation belong to the separate `$jobmatchflow-rank` workflow; do not re-rank the full Job List inside an application pulse.
+3. Build the duplicate check from cached tracking and select requested jobs from cached jobs, prioritizing `is_preparing=true`. Job List ranking and Saved curation belong to the separate `$jobmatchflow-rank` workflow; do not re-rank the full Job List inside an application pulse.
 4. Determine the material route for each selected job. An explicit request for a tailored CV/material pair requires `$jobmatchflow-tailor` to finish first. Otherwise use the standard route: one existing read-only App resume plus a locally generated DOCX Cover Letter. Never enter CV tailoring merely because it might improve the application; the Cover Letter remains job-specific in both routes.
 5. For each selected job, call `get_job_detail` and inspect the full description and match details.
 6. Choose a resume deliberately. Use the cached `local_path` belonging to the selected slot; its storage basename is not the employer-facing name.

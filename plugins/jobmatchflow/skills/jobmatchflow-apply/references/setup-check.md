@@ -23,7 +23,7 @@ Expected report:
 JobMatchFlow connection: ready
 JobMatchFlow authorization: ready
 Candidate profile: ready
-Preparing jobs: ready (N)
+Saved jobs: ready (N)
 Resume library: ready (N)
 Outbound filename preparation: ready
 Pulse cache: ready

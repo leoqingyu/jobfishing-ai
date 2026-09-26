@@ -76,20 +76,20 @@ Omit irrelevant bullets, but keep the headings so later Agents can locate the ru
 
 Do not repeat the full interview automatically. Show a short digest of the saved profile and ask:
 
-> Are these job filtering preferences still valid? Do you want to adjust the target direction, hard constraints, trade-off rules, minimum score, or the number added to Preparing this round?
+> Are these job filtering preferences still valid? Do you want to adjust the target direction, hard constraints, trade-off rules, minimum score, or the number added to Saved this round?
 
 If unchanged, proceed. If changed, ask only the follow-up questions needed for the affected sections, show the complete revised profile, obtain approval, and save the same key again.
 
 ## Available ranking evidence
 
-`list_jobs` can provide App score and decision, hard-standard work-authorization/seniority/language verdicts, job seniority, source, country, processing state, and whether the job is already dismissed, Preparing, or in an application.
+`list_jobs` (paged) can provide the App score and decision, `list_group` (1 Best, 2 Good, 3 Partial) and `intent` (the App's AI verdict: `fit`, `want`, `good[]`, `watch_out[]`; null for free users and for users who have not done the App's preference interview), job seniority, source, country and location, `remote_mode`, `employment_type`, `required_languages`, `required_degree`, `salary` (possibly an estimate), `visa_sponsorship_offered` and `work_permit_required`, `company_info` (industry, size, website, LinkedIn), `contact`, and whether the job is already dismissed (Not for me), Saved, or in an application.
 
-`get_job_detail` can provide the cleaned/raw full JD, hard constraints, and requirement matches with text, category, importance, match level, reason, and confidence.
+`get_job_detail` can provide the cleaned/raw full JD, `requirements` (each skill marked required or preferred, the core work, seniority and minimum years), the company description, the hard constraints, and for older scores requirement matches with text, category, importance, match level, reason and confidence.
 
 Use these as follows:
 
-- App score/decision is the existing capability-match baseline; do not recreate it with fixed universal weights.
-- Hard-standard failures and user hard vetoes exclude automatic Preparing regardless of score.
+- App score/decision is the existing capability-match baseline; when `intent` is present, the App's fit/want verdict is part of that baseline. Do not recreate either with fixed universal weights.
+- The App's hard-standard verdict no longer checks language or work authorization (those two are always true now); check `required_languages`, `visa_sponsorship_offered` and `work_permit_required` yourself against the user's profile. User hard vetoes and any hard conflict you find exclude automatic Saved regardless of score.
 - Full JD and requirement matches explain whether the job satisfies the user's target direction and preferences.
 - Unknown decision-critical conditions become visible questions or flags, never silent passes.
 - Job title is only a label. Judge the function and nature of the work.
@@ -106,4 +106,4 @@ Do not manufacture a second overall match score. Retain:
 - decisive supporting JD evidence;
 - action: `prepare`, `review`, `leave`, or `exclude`.
 
-A job is eligible for automatic Preparing only when it meets the user's stored App-score/decision rule, passes App and user hard constraints, has enough JD evidence, and has `strong` or `acceptable` preference fit. Respect the user's stored maximum additions per run and use App score as the tiebreaker unless the user specified another priority.
+A job is eligible for automatic Saved only when it meets the user's stored App-score/decision rule, passes App and user hard constraints, has enough JD evidence, and has `strong` or `acceptable` preference fit. Respect the user's stored maximum additions per run and use App score as the tiebreaker unless the user specified another priority.

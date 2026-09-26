@@ -27,6 +27,10 @@ Resolve the path from this skill directory. If `ready=true`, retain the absolute
 4. Create a local workspace under `jobmatchflow-materials/<company>-<role>-<job_id>/` for sources, reviews, rendered pages, verification, and the final manifest.
 5. Read the shared [Cover Letter quality workflow](../jobmatchflow-apply/references/cover-letter-quality.md). Build one evidence plan used by both materials.
 
+## Job facts to tailor against
+
+`get_job_detail` returns `requirements` with each skill marked required or preferred, the core work, seniority and minimum years, plus the company description and `contact`. Tailor to the required skills first and the core work second; use the company description only for genuine, checkable context. Do not claim a preferred skill the sources do not support.
+
 ## Draft and review with separate roles
 
 When the host supports subagents, use bounded parallelism:

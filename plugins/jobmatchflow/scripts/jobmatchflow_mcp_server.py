@@ -309,17 +309,24 @@ def _find_tracking_by_job(rows: list[dict[str, Any]], job_id: int) -> dict[str, 
     return next((row for row in rows if _tracking_job_id(row) == job_id), None)
 
 
+# Application stages, matching the App's state machine (core.constants.ApplicationStatus):
+#   applied -> assessment | interview | rejected
+#   assessment -> interview | rejected
+#   interview -> offer | no_offer        (after an interview the negative outcome is no_offer, NOT rejected)
+#   offer <-> no_offer                   (the only pair that may be flipped back and forth)
+#   rejected                             (terminal; only reachable before an interview)
+# "applied" is never sent by an agent: mark_applied creates it, and only the user can Reset a record.
+_SETTABLE_STATUSES = ("assessment", "interview", "offer", "no_offer", "rejected")
+_STATUSES_AFTER_INTERVIEW = {"interview", "offer", "no_offer"}
+
+
 def _status_is_no_op(current: str, requested: str) -> bool:
+    """True when the record is already at, or past, the requested stage, so nothing needs writing."""
     if current == requested:
         return True
-    if requested == "interview" and current in {
-        "offer",
-        "rejected",
-        "hired",
-        "offer_declined",
-    }:
+    if requested == "assessment" and current in _STATUSES_AFTER_INTERVIEW:
         return True
-    if requested == "offer" and current in {"hired", "offer_declined"}:
+    if requested == "interview" and current in {"offer", "no_offer"}:
         return True
     return False
 
@@ -499,14 +506,40 @@ def refresh_application_cache() -> dict[str, Any]:
 
 
 @mcp.tool()
-def list_jobs() -> list[dict[str, Any]]:
-    """List cached jobs after pulse refresh, otherwise fetch current jobs."""
-    return cached_jobs if cached_jobs is not None else _call("GET", "/api/v1/agent/jobs")["jobs"]
+def list_jobs(offset: int = 0, limit: int = 50) -> dict[str, Any]:
+    """Page through the user's job list (cached after a pulse refresh, otherwise fetched now).
+
+    The full list can hold thousands of jobs, far more than fits in one answer, so it is returned
+    `limit` at a time (default 50, at most 200) with `total` and `next_offset` (null on the last
+    page). Order is the App's own: AI "Best" matches first, then Good, then Partial; higher score
+    first within each. Read as many pages as the task needs and stop early when scores drop below
+    what the user cares about.
+
+    Each job carries: title, company, location, score and decision, `list_group` (1 Best, 2 Good,
+    3 Partial), `intent` (the App's AI verdict: fit, want, good[], watch_out[]; null for free users
+    and users without a preference interview, who are ranked by score only), salary, contact,
+    company_info (industry, size, website, linkedin, address), work_permit_required,
+    visa_sponsorship_offered, required_languages, required_degree, remote_mode, employment_type,
+    seniority_band, job_url_direct, is_preparing (shown as Saved in the App) and user_dismissed
+    (shown as Not for me). Use get_job_detail for the full description and requirements."""
+    jobs = cached_jobs if cached_jobs is not None else _call("GET", "/api/v1/agent/jobs")["jobs"]
+    start = max(0, int(offset))
+    size = max(1, min(int(limit), 200))
+    page = jobs[start : start + size]
+    end = start + len(page)
+    return {
+        "total": len(jobs),
+        "offset": start,
+        "limit": size,
+        "next_offset": end if end < len(jobs) else None,
+        "jobs": page,
+    }
 
 
 @mcp.tool()
 def get_job_detail(job_id: int) -> dict[str, Any]:
-    """Return one job's full description and match details."""
+    """Return one job's full description, requirements (skills with required/preferred, core work,
+    seniority, minimum years), company description, contact, salary, visa signals and the App's match details."""
     return _call("GET", f"/api/v1/agent/jobs/{job_id}")
 
 
@@ -696,12 +729,23 @@ def download_application_material(
 def update_application_status(
     tracking_id: int, status: str, notes: str | None = None
 ) -> dict[str, Any]:
-    """Advance status idempotently and append notes when a real stage change occurs."""
+    """Advance status idempotently and append notes when a real stage change occurs.
+
+    status is one of assessment, interview, offer, no_offer, rejected. rejected is only for a
+    rejection BEFORE an interview; once the user has interviewed, a negative outcome is no_offer.
+    offer and no_offer may be switched back and forth; every other move only goes forward. The
+    App shows "Screening" for everything that is applied and not rejected, so do not invent it as
+    a status. Resetting a record is a user action, not available here."""
     requested = str(status or "").strip().lower()
-    if requested not in {"interview", "offer", "rejected"}:
-        raise RuntimeError("status must be interview, offer, or rejected")
+    if requested not in _SETTABLE_STATUSES:
+        raise RuntimeError("status must be one of: " + ", ".join(_SETTABLE_STATUSES))
     current_row = _find_tracking_by_id(_fresh_tracking(), tracking_id)
     current = _tracking_status(current_row) if current_row else ""
+    if requested == "rejected" and current in _STATUSES_AFTER_INTERVIEW:
+        raise RuntimeError(
+            "This application already reached the interview stage, so a negative outcome is recorded "
+            "as no_offer, not rejected."
+        )
     if current_row and _status_is_no_op(current, requested):
         return {
             "updated": False,

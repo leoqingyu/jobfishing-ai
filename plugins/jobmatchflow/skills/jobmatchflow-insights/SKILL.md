@@ -15,14 +15,21 @@ This is a read-only analysis workflow. JobMatchFlow remains the source of truth;
 2. Read recruiter feedback from the unified application notes when available and include it as qualitative evidence. Missing feedback must not block quantitative analysis.
 3. State the analysis date, included population, exclusions, and missing fields.
 
-## Analyze
+## Use the App's definitions
 
-- Show total sample size and counts at each funnel stage.
-- Calculate conversion and time-to-stage only when the underlying dates exist.
-- Compare useful dimensions such as role family, sector, source/channel, match-score band, location, and resume choice.
-- Suppress or clearly label comparisons based on very small groups.
-- Treat patterns as correlations. Do not claim that one resume, keyword, or source caused an outcome without an actual experiment.
-- Use feedback to explain plausible hypotheses, not to rewrite observed statuses.
+The App has its own Insights page. Any funnel number you report must be computed exactly the way it is, so the two never disagree. Use `list_tracking` (each row has `status`, `status_history` with timestamps, `applied_at`) and count across all applications since the first one; no window, no minimum.
+
+- **Stages** are Applied, Screening, Interview, Offer, in that order, from the current status: `applied` shows in the App as "No answer", `assessment` as "In review", `interview` as "In progress", then `offer` and `no_offer`, or `rejected`.
+- **Applied** = every tracked application.
+- **Screening** = everyone still in play: anything that is not `rejected`. An application with no answer yet has not failed, it is waiting, so it counts here. A rejected row that had reached an interview also stays counted.
+- **Interview** = ever interviewed: status `interview`, `offer` or `no_offer`, or `interview` anywhere in its history (older rows went interview to rejected).
+- **Offer** = status `offer`, or `offer` in its history.
+- **Replied** = every application whose status is not `applied`. **Response rate** = replied / applied. **Interview rate** = interviews / applied.
+- **Median time to reply** = median, over the rows that have it, of the days from applying to the first status change after `applied`, as the user logged it (it is when they recorded it, not when the company wrote).
+- **Two ways to be turned down**: `rejected` before an interview, and `no_offer` after one. After an interview the negative outcome is `no_offer`, never `rejected`. "No reply yet" is neither; it is not evidence against the CV.
+- **Where you lose them**: compare the rejected-before-interview share of all applications with the no-offer share of interviews, and say which is worse. A big early loss points at the CV and targeting; a big late loss points at interview preparation.
+
+Then add what the App does not compute (role family, sector, source, match-score band, location, resume choice), suppress or label comparisons on very small groups, and treat every pattern as correlation. Do not claim one resume, keyword or source caused an outcome without an actual experiment.
 
 ## Deliver
 

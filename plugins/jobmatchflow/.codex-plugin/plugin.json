@@ -1,6 +1,6 @@
 {
   "name": "jobmatchflow",
-  "version": "0.5.1+codex.20260827081533",
+  "version": "0.6.0+codex.20260927",
   "description": "Rank jobs, apply, tailor materials, analyze outcomes, and prepare interviews with JobMatchFlow.",
   "author": {
     "name": "JobMatchFlow"
@@ -18,7 +18,7 @@
   "interface": {
     "displayName": "JobMatchFlow",
     "shortDescription": "Prepare, submit, and track job applications.",
-    "longDescription": "Connect Codex to JobMatchFlow, interview users about ranking preferences, curate Job List matches into Preparing, run pulse-based ATS and webmail applications in visible external Chrome, tailor application materials, analyze outcomes, and prepare interviews from exact application snapshots.",
+    "longDescription": "Connect Codex to JobMatchFlow, interview users about ranking preferences, curate Job List matches into Saved, run pulse-based ATS and webmail applications in visible external Chrome, tailor application materials, analyze outcomes, and prepare interviews from exact application snapshots.",
     "developerName": "JobMatchFlow",
     "category": "Productivity",
     "capabilities": [
@@ -27,8 +27,8 @@
     ],
     "defaultPrompt": [
       "Check my setup and tell me what is missing.",
-      "Confirm my ranking preferences, then shortlist Job List matches into Preparing.",
-      "Sync my job inbox, then continue my Preparing applications.",
+      "Confirm my ranking preferences, then shortlist Job List matches into Saved.",
+      "Sync my job inbox, then continue my Saved applications.",
       "Tailor my resume for this JobMatchFlow job.",
       "Analyze my application funnel.",
       "Prepare me for this tracked interview."

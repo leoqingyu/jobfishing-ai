@@ -27,7 +27,7 @@ Before letting Codex start working, log in to JobMatchFlow and complete the foll
 3. Upload the resumes you plan to use;
 4. Check the filename shown for each resume in the App;
 5. Review your common application Q&A;
-6. Put the jobs you plan to apply to into `Preparing`;
+6. Put the jobs you plan to apply to into `Saved`;
 7. Decide whether to explicitly authorize Codex to submit directly this round; the App has no separate auto-confirm toggle.
 
 Basic Info is the final source of truth for the name, address, phone number, email, and other personal information in application forms. Users are responsible for the accuracy of the information they enter.
@@ -38,13 +38,13 @@ If the information in a resume is inconsistent with Basic Info, Codex should rem
 
 Job filtering is a standalone feature and does not automatically start submitting applications. On first use, send:
 
-> Use $jobmatchflow-rank. First read the existing filtering preferences in Experience; if the information is insufficient, ask me a series of questions to understand my target direction, hard constraints, work preferences, and trade-off rules. Save the confirmed preferences to Experience Agent Q&A, then review the Job List and add jobs that match the preferences to Preparing. Do not start submitting applications.
+> Use $jobmatchflow-rank. First read the existing filtering preferences in Experience; if the information is insufficient, ask me a series of questions to understand my target direction, hard constraints, work preferences, and trade-off rules. Save the confirmed preferences to Experience Agent Q&A, then review the Job List and add jobs that match the preferences to Saved. Do not start submitting applications.
 
 Codex will save the confirmed long-term preferences as `job_ranking_preferences_v1` in Experience Agent Q&A. This entry can be edited in the App frontend.
 
 Every subsequent call to this Skill, Codex will first show a summary of the existing preferences and ask whether they need updating. Only after the user confirms the preferences will Codex read the full JD, App score, match details, and hard thresholds to filter jobs. Jobs that are not selected are left unchanged by default and are not automatically deleted.
 
-If you only want to view the ranking without modifying Preparing, explicitly send:
+If you only want to view the ranking without modifying Saved, explicitly send:
 
 > Use $jobmatchflow-rank, only review and show the recommended results, do not modify the Job List.
 
@@ -197,7 +197,7 @@ The expected result looks like:
 JobMatchFlow connection: ready
 JobMatchFlow authorization: ready
 Candidate profile: ready
-Preparing jobs: ready (N)
+Saved jobs: ready (N)
 Resume library: ready (N)
 Outbound material filenames: ready
 Pulse cache: ready
@@ -282,15 +282,15 @@ If the user wants to complete this continuously within the same task, it can als
 
 `$jobmatchflow-apply-fast` is a leaner sibling of `$jobmatchflow-apply` for when the user just wants to get through one job, or a handful, quickly — it is not a replacement for the standard entry point. It picks one resume for the whole pass instead of re-deliberating per job, uploads that resume first on any ATS that can parse and autofill from it, drafts and self-reviews the Cover Letter inline instead of dispatching a separate reviewer, and still stops before the final submit button unless direct submission is already on. LinkedIn Easy Apply routing (official posting first, verified email before or alongside Easy Apply) is not shortened in this path.
 
-> Use $jobmatchflow-apply-fast with my resume #2 for this pass. Process these three Preparing jobs; stop before the final submit button on each.
+> Use $jobmatchflow-apply-fast with my resume #2 for this pass. Process these three Saved jobs; stop before the final submit button on each.
 
 ## 8. First Test Submission
 
 For the first test, it is recommended to process only one job and stop before submission.
 
-First put a test job into `Preparing` in JobMatchFlow, then send:
+First put a test job into `Saved` in JobMatchFlow, then send:
 
-> Use $jobmatchflow-apply. First sync the job-search inbox, then process one Preparing job. This test does not need a tailored resume: use the most suitable existing resume in the App and generate a standard DOCX Cover Letter; stop before the final submit button and do not submit.
+> Use $jobmatchflow-apply. First sync the job-search inbox, then process one Saved job. This test does not need a tailored resume: use the most suitable existing resume in the App and generate a standard DOCX Cover Letter; stop before the final submit button and do not submit.
 
 Codex should perform:
 
@@ -316,7 +316,7 @@ Codex must see a success confirmation page on the job-board site or a sent email
 
 Once the first test submission succeeds, you can explicitly authorize direct submission within the current task and send:
 
-> Use $jobmatchflow-apply. First sync the job-search inbox starting from where it last left off, then process all Preparing jobs for this round. Direct submission is enabled; stop and ask me if you encounter a CAPTCHA, MFA, a legal disclaimer, conflicting data, or a fact you cannot determine.
+> Use $jobmatchflow-apply. First sync the job-search inbox starting from where it last left off, then process all Saved jobs for this round. Direct submission is enabled; stop and ask me if you encounter a CAPTCHA, MFA, a legal disclaimer, conflicting data, or a fact you cannot determine.
 
 Codex can complete this round's jobs continuously, but should still pause and hand off to the user in the following situations:
 
@@ -335,7 +335,7 @@ You do not need to reinstall the plugin or re-copy resumes for each submission r
 
 The standard process is as follows:
 
-1. The user first updates their profile, Experience, resumes, and Preparing jobs in JobMatchFlow;
+1. The user first updates their profile, Experience, resumes, and Saved jobs in JobMatchFlow;
 2. Open the same Codex Project;
 3. Create a new task;
 4. Tell Codex which jobs to process this round and whether direct submission is allowed;
@@ -347,7 +347,7 @@ The standard process is as follows:
 
 Common prompt:
 
-> Use $jobmatchflow-apply. My JobMatchFlow profile and resumes have been updated. First sync the job-search inbox, then process all Preparing jobs for this round. Direct submission is enabled; stop and ask me if anything requires my personal confirmation or action.
+> Use $jobmatchflow-apply. My JobMatchFlow profile and resumes have been updated. First sync the job-search inbox, then process all Saved jobs for this round. Direct submission is enabled; stop and ask me if anything requires my personal confirmation or action.
 
 The batch prompt above defaults to using the App's existing resumes and a standard DOCX Cover Letter. If a particular job needs a tailored resume, run `$jobmatchflow-tailor` for that job separately first, and hand it to `$jobmatchflow-apply` only after both tailored materials are complete.
 
@@ -529,7 +529,7 @@ This is not a 24-hour monitoring task. Codex only works when the user actively o
 
 | Skill | When to use it | Main actions | What it saves |
 | --- | --- | --- | --- |
-| `$jobmatchflow-rank` | Want to filter the Job List or add suitable jobs to Preparing | First asks a series of questions about job-search preferences; afterward confirms preferences first; filters using App score, full JD, and match details | Confirmed preferences saved to Experience Agent Q&A; Preparing modified when the user asks |
+| `$jobmatchflow-rank` | Want to filter the Job List or add suitable jobs to Saved | First asks a series of questions about job-search preferences; afterward confirms preferences first; filters using App score, full JD, and match details | Confirmed preferences saved to Experience Agent Q&A; Saved modified when the user asks |
 | `$jobmatchflow-apply` | Configuration check, syncing email, filling out an ATS, submitting via company site/email/Easy Apply | Chooses existing or tailored materials, operates Chrome, updates the Application after submission | Cover Letter, submission status, complete submission record, original company-site link, email and recruiting feedback written to the App |
 | `$jobmatchflow-apply-fast` | A quick one-job or small-batch pass once setup is already done | Same as `apply`, but with one resume for the whole pass, ATS resume-parse autofill first, and an inline self-reviewed Cover Letter instead of a dispatched reviewer | Same write-back as `apply`; still stops before the final submit button |
 | `$jobmatchflow-cover-letter-fast` | Just want a Cover Letter, not a full application | Drafts and self-reviews one job-specific Cover Letter inline, renders a verified local DOCX, uploads to JobMatchFlow only on request | Nothing until the user asks to save it; no resume choice, no ATS, no browser |
