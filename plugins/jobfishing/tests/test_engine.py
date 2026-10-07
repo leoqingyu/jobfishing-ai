@@ -141,3 +141,19 @@ def test_codex_config_is_idempotent_and_keeps_other_tables(tmp_path, monkeypatch
     left = cfg.read_text()
     assert "jobfishing" not in left and "[mcp_servers.other]" in left
     assert not (tmp_path / "home" / ".agents" / "skills" / "jobfishing-rank").exists()
+
+
+def test_skills_refresh_on_start_only_where_installed(tmp_path, monkeypatch):
+    from jobfishing_engine import install
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    monkeypatch.setattr(install, "_skills_src", lambda: Path(__file__).resolve().parents[1] / "skills")
+    assert install.sync_installed_skills() == []                       # nothing installed -> nothing created
+    assert not (tmp_path / ".claude").exists()
+    claude = tmp_path / ".claude" / "skills"
+    (claude / "jobfishing-rank").mkdir(parents=True)
+    (claude / "jobfishing-rank" / "SKILL.md").write_text("OLD")        # an earlier version's copy
+    assert install.sync_installed_skills() == [str(claude)]
+    assert (claude / "jobfishing-rank" / "SKILL.md").read_text() != "OLD"
+    assert install.sync_installed_skills() == []                       # up to date -> no rewrite
+    assert not (tmp_path / ".agents").exists()                         # Codex untouched

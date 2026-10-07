@@ -936,6 +936,11 @@ def recommend(limit: int = 30, min_score: float = 60, include_jobfishing: bool =
 
 
 def main() -> None:
+    try:  # keep the skills an earlier `jobfishing install` copied in step with this version
+        from jobfishing_engine.install import sync_installed_skills
+        sync_installed_skills()
+    except Exception as e:  # never stop the server over a skills refresh
+        print(f"[jobfishing] skills refresh skipped: {e}", file=sys.stderr)
     if TOKEN:
         print("[jobfishing] Authorization available", file=sys.stderr)
     else:

@@ -41,6 +41,34 @@ def _copy_skills(dest_root: Path) -> list[str]:
     return names
 
 
+def _skills_digest() -> str:
+    """Hash of the bundled skill files, so an installed copy can tell whether it is stale."""
+    import hashlib
+    h = hashlib.sha256()
+    for f in sorted(_skills_src().rglob("*")):
+        if f.is_file() and "__pycache__" not in f.parts and f.suffix != ".pyc" and f.name != "__init__.py":
+            h.update(f.relative_to(_skills_src()).as_posix().encode())
+            h.update(f.read_bytes())
+    return h.hexdigest()
+
+
+def sync_installed_skills() -> list[str]:
+    """Called when the MCP server starts: where `jobfishing install` already put skills, refresh them if this version ships
+    different ones. Never creates skills for an agent that does not have them, and never touches agent config."""
+    refreshed = []
+    digest = _skills_digest()
+    for root in (Path.home() / ".claude" / "skills", _codex_skills_dir()):
+        marker = root / ".jobfishing-skills-digest"
+        if not root.is_dir() or not any(d.name.startswith(SKILL_PREFIX) for d in root.iterdir() if d.is_dir()):
+            continue
+        if marker.exists() and marker.read_text().strip() == digest:
+            continue
+        _copy_skills(root)
+        marker.write_text(digest)
+        refreshed.append(str(root))
+    return refreshed
+
+
 def _remove_skills(dest_root: Path) -> int:
     n = 0
     if dest_root.is_dir():
@@ -48,6 +76,7 @@ def _remove_skills(dest_root: Path) -> int:
             if d.is_dir() and d.name.startswith(SKILL_PREFIX):
                 shutil.rmtree(d)
                 n += 1
+        (dest_root / ".jobfishing-skills-digest").unlink(missing_ok=True)
     return n
 
 
@@ -66,6 +95,7 @@ def install_claude() -> str:
     if r.returncode != 0:
         return f"Claude Code: could not register the MCP server ({(r.stderr or r.stdout).strip()[:200]})"
     skills = _copy_skills(Path.home() / ".claude" / "skills")
+    (Path.home() / ".claude" / "skills" / ".jobfishing-skills-digest").write_text(_skills_digest())
     return f"Claude Code: MCP server registered, {len(skills)} skills copied to ~/.claude/skills"
 
 
@@ -123,6 +153,7 @@ def install_codex() -> str:
     cfg.write_text((text + "\n\n" if text else "") + _codex_block(), encoding="utf-8")
     _remove_skills(home / "skills")  # legacy location, never read by Codex
     skills = _copy_skills(_codex_skills_dir())
+    (_codex_skills_dir() / ".jobfishing-skills-digest").write_text(_skills_digest())
     return f"Codex: MCP server written to {cfg}, {len(skills)} skills copied to {_codex_skills_dir()}"
 
 

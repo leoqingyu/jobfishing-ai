@@ -55,10 +55,12 @@ What the script does, and nothing else: installs [uv](https://docs.astral.sh/uv/
 
 It only configures the agents it finds on the machine; if you install an agent later, run the line again (it is safe to repeat). Read the scripts first if you like: [install.sh](https://jobfish.ing/install.sh), [install.ps1](https://jobfish.ing/install.ps1).
 
-**Update / uninstall**
+**Updates are automatic.** Each time your agent starts jobfishing, `uv` checks GitHub for a newer version and fetches it, and the skills copied by the installer are refreshed to match. A new version is therefore live the next time you restart your agent (once or twice at most). Nothing to run.
+
+To force an update now, or to uninstall:
 
 ```bash
-uvx --refresh --from "https://github.com/leoqingyu/jobfishing-ai/archive/refs/heads/main.zip#subdirectory=plugins/jobfishing" jobfishing install     # update
+uvx --refresh --from "https://github.com/leoqingyu/jobfishing-ai/archive/refs/heads/main.zip#subdirectory=plugins/jobfishing" jobfishing install     # update now
 uvx --from "https://github.com/leoqingyu/jobfishing-ai/archive/refs/heads/main.zip#subdirectory=plugins/jobfishing" jobfishing uninstall            # remove
 ```
 
