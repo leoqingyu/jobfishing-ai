@@ -1,6 +1,8 @@
 # jobfishing × Claude Code — Full User Workflow
 
-> **Note:** the one-line install in the [README](../README.md#install) is now the simple way to set jobfishing up, and the README's "How to use it" section is the quick start. This guide is the long, manual version (download, unzip, install as a plugin). The steps after installation are the same either way.
+> **How to use this guide.** It is the companion to the [README](../README.md), not a second install. The README's one-line install and "How to use it" cover finding, scoring, saving and recommending jobs, and the tools are ready as soon as the install finishes. **If that already works for you, do not repeat any setup here.** Open this guide only for what the README does not cover: connecting Claude Code to your own Chrome, running application sessions and reading your inbox, tailored CVs with LaTeX, and troubleshooting. The README has a table of exactly which section to open and when.
+
+> **Command names.** This guide writes Claude Code commands in the plugin form, `/jobfishing:jobfishing-apply`. If you used the one-line install, leave out the `jobfishing:` part: it is `/jobfishing-apply`, the same skill.
 
 
 This document guides users through the first-time connection of jobfishing, Claude Code, and Claude in Chrome, and describes how to use them afterward following the pattern of "open once, submit a batch, end the task."
@@ -17,8 +19,7 @@ The user needs to prepare:
 - Google Chrome;
 - The Claude in Chrome extension;
 - A job-search email account already logged into the same Chrome Profile;
-- Python 3.10 or higher;
-- The `jobfishing-distribution-0.5.1-complete-v7.zip` dual-compatibility distribution package.
+- jobfishing installed with the [README's one-line install](../README.md#install). Nothing else to install: no Python, no download. (Only if that cannot run on your computer: the `jobfishing-distribution-0.5.1-complete-v7.zip` distribution package and section 3.)
 
 Claude in Chrome requires a direct Anthropic login. Claude Code sessions that only use an API Key, Amazon Bedrock, Google Cloud, or Microsoft Foundry cannot use this Chrome integration.
 
@@ -56,7 +57,9 @@ If you only want to view the ranking without modifying Saved, explicitly send:
 
 > /jobfishing:jobfishing-rank Only review and show the recommended results; do not modify the Job List.
 
-## 3. First-Time Installation of the jobfishing Plugin
+## 3. Manual Installation (Only If the One-Line Install Cannot Be Used)
+
+**Skip this whole section if the README one-line install worked.** You can check in a few seconds: ask Claude Code to "list your jobfishing skills", or run `claude mcp list` and look for `jobfishing` showing as connected. Use the steps below only on a computer where the one-line install cannot run (a locked-down or corporate machine, no way to run PowerShell or shell scripts from the internet), or if you prefer to install it as a plugin.
 
 This section only needs to be done once.
 
@@ -262,20 +265,22 @@ If the same system account has already been configured previously by Codex, Clau
 If the user has already installed LaTeX on their own, the compiler paths can be registered explicitly. Windows PowerShell example:
 
 ```powershell
-python "$env:USERPROFILE\Documents\JobfishingAgent\plugins\jobfishing\skills\jobfishing-materials-setup\scripts\materials_doctor.py" --smoke --write-state --lualatex "D:\TeX\bin\lualatex.exe" --xelatex "D:\TeX\bin\xelatex.exe"
+uv run --no-project "$env:USERPROFILE\.claude\skills\jobfishing-materials-setup\scripts\materials_doctor.py" --smoke --write-state --lualatex "D:\TeX\bin\lualatex.exe" --xelatex "D:\TeX\bin\xelatex.exe"
 ```
 
 macOS example:
 
 ```bash
-python3 "$HOME/Documents/JobfishingAgent/plugins/jobfishing/skills/jobfishing-materials-setup/scripts/materials_doctor.py" --smoke --write-state --lualatex "/custom/tex/bin/lualatex" --xelatex "/custom/tex/bin/xelatex"
+uv run --no-project "$HOME/.claude/skills/jobfishing-materials-setup/scripts/materials_doctor.py" --smoke --write-state --lualatex "/custom/tex/bin/lualatex" --xelatex "/custom/tex/bin/xelatex"
 ```
 
 Linux example:
 
 ```bash
-python3 "$HOME/JobfishingAgent/plugins/jobfishing/skills/jobfishing-materials-setup/scripts/materials_doctor.py" --smoke --write-state --lualatex "/custom/tex/bin/lualatex" --xelatex "/custom/tex/bin/xelatex"
+uv run --no-project "$HOME/.claude/skills/jobfishing-materials-setup/scripts/materials_doctor.py" --smoke --write-state --lualatex "/custom/tex/bin/lualatex" --xelatex "/custom/tex/bin/xelatex"
 ```
+
+These paths are where the one-line install puts the skills. If you installed manually from the unzipped folder, the script is in `plugins/jobfishing/skills/jobfishing-materials-setup/scripts/` inside that folder instead. Run it with `uv run --no-project` either way, so no separate Python is needed.
 
 Do not put `environment.json` inside a Project, the plugin directory, or the Claude Code cache directory. Each different computer and each different system account needs its own separate configuration; WSL and a native Windows environment are also treated as two separate environments. Windows users should continue to use native Claude Code to connect to Chrome.
 
@@ -464,9 +469,11 @@ Every Blocked job should include a clear next step.
 
 ## 15. Frequently Asked Questions
 
-### `/jobfishing:jobfishing-apply` Isn't Recognized
+### `/jobfishing-apply` (or `/jobfishing:jobfishing-apply`) Isn't Recognized
 
-Run:
+**If you used the one-line install:** the skills are copied to `~/.claude/skills` (Windows: `%USERPROFILE%\.claude\skills`). Check that `jobfishing-apply` is there, fully quit and reopen Claude Code (twice if it still does not show; the skills refresh themselves when the tools start), and type `/jobfishing-apply`, without the `jobfishing:` prefix. If the folder is empty, run the README install line again; it is safe to repeat.
+
+**If you installed as a plugin:** run:
 
 ```text
 /plugin
@@ -476,7 +483,13 @@ Check whether the plugin is Installed, Enabled, and whether there are any errors
 
 ### The jobfishing MCP Fails to Start
 
-Check whether `jobfishing-mcp` is on the PATH; if it can't be found, go back to the unzipped directory and re-run the Python install command.
+**If you used the one-line install:** run `claude mcp list`. `jobfishing` should show as connected; the first start after an update takes about ten seconds. If it does not, run the README install line again (it is safe to repeat), and if it still fails, run this and read the error:
+
+```text
+uvx --from "https://github.com/leoqingyu/jobfishing-ai/archive/refs/heads/main.zip#subdirectory=plugins/jobfishing" jobfishing-mcp
+```
+
+**If you installed manually:** check that `uv` works (`uv --version`) and re-install the plugin as in section 3.
 
 You can also use `claude --debug` to view MCP initialization errors.
 

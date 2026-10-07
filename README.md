@@ -48,6 +48,24 @@ You do **not** follow an install guide, unzip anything, or install Python. The o
 - **Your profile in the app, only to improve scores.** Without one, scoring uses your CV.
 - Your local jobs live in `~/.jobfishing/` (on Windows `%USERPROFILE%\.jobfishing\`).
 
+## Which guide do I need?
+
+For most people the answer is **none**. If the one-line install finished and `$jobfishing-rank` answers, you have everything in this README and nothing to set up twice.
+
+The two long guides are a companion for the parts that need more hand-holding. Open the one for your agent: [Claude Code](docs/claude-code-guide.md) or [Codex](docs/codex-guide.md).
+
+| Your situation | Open | Section |
+| --- | --- | --- |
+| The one-line install worked and you only find, score, save and recommend jobs | Nothing | |
+| You want to apply through your own Chrome or have it read your inbox, for the first time | The guide | Connecting to Chrome, the day-to-day project, the first configuration check and the first trial submission (sections 4 to 8) |
+| You want to turn on direct submission and run application rounds every day | The guide | Sections 9 to 14, then the daily routine in section 16 |
+| You want tailored CVs and already have LaTeX, or want it somewhere specific | The guide | Section 7 (Optional: shared LaTeX environment). For a normal install just say `$jobfishing-materials-setup` |
+| The one-line install cannot run on your computer (locked-down machine, no way to run a script from the internet), or you prefer to install it as a plugin | The guide | Section 3 (Manual installation) |
+| Something is not working: a skill is not recognized, the tools will not start, Chrome will not connect, an upload fails | The guide | Section 15 (Frequently asked questions) |
+| You want to see every rule the apply skill follows (filenames, cache rules, email order, end-of-round summary) | The guide | Sections 10 to 14 and the quick reference in section 17 |
+
+Tip: you do not have to read a guide front to back. Find your row, open that section only.
+
 ## Skills
 
 | Skill | What it does |
