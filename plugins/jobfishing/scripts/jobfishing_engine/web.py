@@ -144,7 +144,7 @@ def _make_handler(port: int, hosted_fetch):
                     ids = [int(i) for i in body.get("ids", [])]
                 except (ValueError, TypeError) as e:
                     return self._json({"error": f"bad request: {e}"}, 400)
-                return self._json({"cleared": store.clear_jobs(ids)})
+                return self._json({"cleared": store.clear_all() if body.get("all") is True else store.clear_jobs(ids)})
             if path != "/api/crawl":
                 return self._json({"error": "not found"}, 404)
             try:

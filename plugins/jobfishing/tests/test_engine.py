@@ -308,3 +308,19 @@ def test_dashboard_clear_endpoint_and_the_three_prompts(dash):
                     headers={"X-Jobfishing": "1", "Content-Type": "application/json"})
     assert st == 200 and _json.loads(body) == {"cleared": 1} and store.counts()["jobs"] == 1
     assert _req(dash, "GET", f"/api/prompt?kind=save&ids={a}")[0] == 400            # a cleared job cannot be put in a save prompt
+
+
+def test_clear_all_takes_everything_off_including_unscored_and_title_only(dash):
+    _scored_job("https://x/a")
+    store.upsert_jobs([{"site": "linkedin", "url": "https://www.linkedin.com/jobs/view/t-4000000001", "title": "Title only"},
+                       {"site": "indeed", "url": "https://x/unscored", "title": "U", "description": "d" * 200}])
+    assert store.counts()["jobs"] == 3 and store.counts()["scored"] == 1
+    st, body = _req(dash, "POST", "/api/clear", body=_json.dumps({"all": True}), headers={"X-Jobfishing": "1", "Content-Type": "application/json"})
+    assert st == 200 and _json.loads(body) == {"cleared": 3}
+    assert store.counts() == {"jobs": 0, "scored": 0, "unscored": 0, "ready": 0, "no_description": 0}
+    assert store.list_jobs() == [] and store.search_jobs()["total"] == 0
+    # the next batch starts clean, and only genuinely new postings count
+    assert store.upsert_jobs([{"site": "indeed", "url": "https://x/a", "title": "again"}, {"site": "indeed", "url": "https://x/new", "title": "N"}])["new"] == 1
+    assert store.counts()["jobs"] == 1
+    assert _req(dash, "POST", "/api/clear", body=_json.dumps({"all": "yes"}), headers={"X-Jobfishing": "1", "Content-Type": "application/json"})[0] == 200  # only a real true clears all
+    assert store.counts()["jobs"] == 1

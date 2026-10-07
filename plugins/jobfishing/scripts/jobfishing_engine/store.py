@@ -140,6 +140,12 @@ def counts() -> dict:
             "no_description": r["no_description"]}
 
 
+def clear_all() -> int:
+    """Take every job off the dashboard: scored or not, with or without text. Same soft clear as clear_jobs."""
+    with connect() as con:
+        return con.execute("UPDATE jobs SET cleared_at=? WHERE cleared_at IS NULL", [time.time()]).rowcount
+
+
 def clear_jobs(ids: list[int]) -> int:
     """Take these jobs off the dashboard. The rows (and their scores) stay in the database file, and because (site, url) is
     unique, crawling the same posting again does not bring a cleared job back."""

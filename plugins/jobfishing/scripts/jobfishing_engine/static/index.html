@@ -107,7 +107,7 @@ pre.desc{white-space:pre-wrap;word-wrap:break-word;font:13.5px/1.55 var(--sans);
   <section id="p-rec">
     <div class="toolbar" id="recBar" hidden>
       <button class="btn" id="saveBtn" type="button">Save to jobfishing…</button>
-      <button class="btn ghost" id="clearBtn" type="button">Clear this batch</button>
+      <button class="btn ghost" id="clearBtn" type="button">Clear all jobs</button>
       <span class="grow"></span>
     </div>
     <div class="savebar" id="saveBar" hidden>
@@ -183,6 +183,7 @@ function show(t){tab=t;["rec","all","crawl"].forEach(function(x){$("p-"+x).hidde
 ["rec","all","crawl"].forEach(function(x){$("t-"+x).addEventListener("click",function(){show(x)})});
 
 function counts(){return api("/api/counts").then(function(c){
+  lastJobs=c.jobs;
   $("counts").textContent="";$("counts").appendChild(h("span",{},[h("b",{},[String(c.jobs)])," jobs · ",h("b",{},[String(c.scored)])," scored"]));
   var parts=[];if(c.ready>0)parts.push(c.ready+" job"+(c.ready===1?" is":"s are")+" ready to score");
   if(c.no_description>0)parts.push(c.no_description+" LinkedIn job"+(c.no_description===1?" has":"s have")+" only a title so far (your agent fetches the text for the ones worth it)");
@@ -191,10 +192,10 @@ function counts(){return api("/api/counts").then(function(c){
   $("crawlNext").hidden=c.no_description===0;
   $("crawlNextText").textContent=c.no_description+" crawled job"+(c.no_description===1?" has":"s have")+" only a title so far, no job text, so they cannot be scored yet. Your agent can look at the titles, pick the ones worth scoring and fetch their text: paste this prompt into it.";
   return c})}
-var recRows=[];
+var recRows=[],lastJobs=0;
 function localRecs(){return recRows.filter(function(j){return j.source==="local"})}
 function drawRec(){
-  var loc=localRecs();$("recBar").hidden=loc.length===0||saveMode;$("saveBar").hidden=!saveMode;
+  var loc=localRecs();$("recBar").hidden=saveMode||(loc.length===0&&lastJobs===0);$("saveBtn").hidden=loc.length===0;$("saveBar").hidden=!saveMode;
   fill($("recList"),recRows.map(function(j){return rowFor(j,j.source)}),"Nothing scored 60 or higher yet. Crawl some jobs, then ask your agent to score them.");updateSaveBar()}
 function recommend(){return api("/api/recommend?limit=30&min_score=60").then(function(r){
   recRows=r.jobs;$("recNote").textContent=r.note||"";
@@ -243,15 +244,17 @@ function closeModal(){$("modal").hidden=true}
 $("modal").addEventListener("click",function(e){if(e.target===$("modal"))closeModal()});
 document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("modal").hidden)closeModal()});
 
-/* Clear: take this batch off the page for good. The rows stay in the database file. */
+/* Clear: take every local job off the page for good, so the next crawl starts clean. The rows stay in the database file. */
 $("clearBtn").addEventListener("click",function(){
-  var ids=localRecs().map(function(j){return j.id}),n=ids.length,hosted=recRows.length-n;
-  openModal("Clear this batch?",[
-    h("p",{},[n+" job"+(n===1?"":"s")+" will be cleared from this dashboard for good. Please make sure you have finished with them: saved the ones you want, applied, or noted what you need."]),
-    h("p",{},["They stay in the database file on your computer but will not show up here again, and crawling the same posting again will not bring them back."+(hosted>0?" The "+hosted+" job"+(hosted===1?"":"s")+" from jobfishing stay in your jobfishing account.":"")])],
-   [{label:"Cancel",cls:"ghost",onClick:closeModal},
-    {label:"Clear "+n+" job"+(n===1?"":"s"),cls:"danger",onClick:function(){
-      api("/api/clear",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids:ids})}).then(function(){closeModal();sel={};refresh()}).catch(function(err){closeModal();alert(err.message)})}}])});
+  api("/api/counts").then(function(c){
+    var n=c.jobs,hosted=recRows.length-localRecs().length,extra=[];
+    if(c.scored)extra.push(c.scored+" scored");if(c.ready)extra.push(c.ready+" waiting to be scored");if(c.no_description)extra.push(c.no_description+" with only a title");
+    openModal("Clear all jobs?",[
+      h("p",{},["All "+n+" local job"+(n===1?"":"s")+" on this dashboard will be cleared for good"+(extra.length?" ("+extra.join(", ")+")":"")+". Please make sure you have finished with them: saved the ones you want, applied, or noted what you need."]),
+      h("p",{},["They stay in the database file on your computer but will not show up here again, and crawling the same posting again will not bring them back."+(hosted>0?" The "+hosted+" job"+(hosted===1?"":"s")+" from jobfishing stay in your jobfishing account.":"")])],
+     [{label:"Cancel",cls:"ghost",onClick:closeModal},
+      {label:"Clear all "+n+" job"+(n===1?"":"s"),cls:"danger",onClick:function(){
+        api("/api/clear",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({all:true})}).then(function(){closeModal();sel={};refresh()}).catch(function(err){closeModal();alert(err.message)})}}])})});
 
 /* Save: pick which jobs, then get a prompt that has the agent save them all to jobfishing in one go. */
 function updateSaveBar(){var n=Object.keys(sel).length;$("saveCount").textContent=n+" selected";$("saveGo").disabled=n===0}
