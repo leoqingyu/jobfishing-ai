@@ -64,6 +64,24 @@ nav.tabs button[aria-selected=true]{color:var(--ink);border-color:var(--green)}
 .sk.full,.sk.exceeds,.sk.strong{background:var(--tint);border-color:var(--tint-line);color:var(--green)}
 .sk.none,.sk.weak{color:var(--red)}
 pre.desc{white-space:pre-wrap;word-wrap:break-word;font:13.5px/1.55 var(--sans);background:var(--subtle);border:1px solid var(--line2);border-radius:12px;padding:14px;max-height:46vh;overflow:auto}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
+.toolbar .grow{flex:1}
+.btn.danger{background:#9b2c2c}.btn.danger:hover{background:#7f2323}
+.row.sel{grid-template-columns:26px 56px 1fr auto}
+.row input[type=checkbox]{width:18px;height:18px;accent-color:var(--green);margin:0}
+.row.picked{border-color:var(--green-bar);background:#f4fbf6}
+.row.locked{opacity:.55;cursor:default}
+.savebar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:var(--tint);border:1px solid var(--tint-line);border-radius:12px;padding:10px 14px;margin:0 0 12px;font-size:14px}
+.savebar[hidden],.toolbar[hidden],#crawlNext[hidden]{display:none}
+.modal-wrap{position:fixed;inset:0;background:rgba(14,14,12,.35);display:grid;place-items:center;z-index:8;padding:16px}
+.modal-wrap[hidden]{display:none}
+.modal{background:var(--surface);border-radius:18px;max-width:560px;width:100%;padding:22px;box-shadow:0 30px 60px -30px rgba(30,28,20,.6);max-height:90vh;overflow:auto}
+.modal h3{margin:0 0 8px;font-size:18px}
+.modal p{margin:0 0 10px;color:var(--ink2);font-size:14.5px}
+.modal textarea{width:100%;min-height:150px;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--subtle);border:1px solid var(--line);border-radius:10px;padding:10px;resize:vertical}
+.m-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;flex-wrap:wrap}
+#crawlNext{margin-top:14px;background:var(--amber-tint);border:1px solid #efdca8;border-radius:12px;padding:12px 14px;font-size:14px;max-width:640px}
+#crawlNext p{margin:0 0 8px}
 .scrim{position:fixed;inset:0;background:rgba(14,14,12,.25);opacity:0;pointer-events:none;transition:opacity .2s;z-index:4}
 .scrim.open{opacity:1;pointer-events:auto}
 @media(max-width:640px){.row{grid-template-columns:48px 1fr}.row .badge{display:none}.form .two{grid-template-columns:1fr}}
@@ -77,7 +95,8 @@ pre.desc{white-space:pre-wrap;word-wrap:break-word;font:13.5px/1.55 var(--sans);
   </header>
   <div class="banner" id="banner" hidden>
     <span id="bannerText"></span>
-    <button class="btn" id="copyPrompt" type="button">Copy prompt for your agent</button>
+    <button class="btn" id="copyPrompt" type="button">Copy prompt: score the ready jobs</button>
+    <button class="btn" id="copyFetch" type="button">Copy prompt: fetch the missing texts</button>
   </div>
   <nav class="tabs" role="tablist">
     <button role="tab" id="t-rec" aria-selected="true">Recommended</button>
@@ -85,7 +104,20 @@ pre.desc{white-space:pre-wrap;word-wrap:break-word;font:13.5px/1.55 var(--sans);
     <button role="tab" id="t-crawl" aria-selected="false">Crawl</button>
   </nav>
 
-  <section id="p-rec"><p class="note" id="recNote"></p><div class="list" id="recList"></div></section>
+  <section id="p-rec">
+    <div class="toolbar" id="recBar" hidden>
+      <button class="btn" id="saveBtn" type="button">Save to jobfishing…</button>
+      <button class="btn ghost" id="clearBtn" type="button">Clear this batch</button>
+      <span class="grow"></span>
+    </div>
+    <div class="savebar" id="saveBar" hidden>
+      <span id="saveCount"></span>
+      <button class="btn ghost" id="saveAll" type="button">Select all</button>
+      <button class="btn ghost" id="saveCancel" type="button">Cancel</button>
+      <button class="btn" id="saveGo" type="button">Get the prompt</button>
+    </div>
+    <p class="note" id="recNote"></p><div class="list" id="recList"></div>
+  </section>
 
   <section id="p-all" hidden>
     <div class="bar">
@@ -109,9 +141,14 @@ pre.desc{white-space:pre-wrap;word-wrap:break-word;font:13.5px/1.55 var(--sans);
       <div><button class="btn" id="go" type="submit">Crawl</button></div>
     </form>
     <p class="status" id="crawlStatus"></p>
+    <div id="crawlNext" hidden>
+      <p id="crawlNextText"></p>
+      <button class="btn" id="copyFetch2" type="button">Copy prompt: fetch the missing texts</button>
+    </div>
     <p class="note">A few titles and places per run is plenty; the sites rate-limit an IP that asks for hundreds of searches. Crawled jobs appear in All jobs. To score them, copy the prompt from the banner into your agent.</p>
   </section>
 </div>
+<div class="modal-wrap" id="modal" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle"><h3 id="mTitle"></h3><div id="mBody"></div><div class="m-actions" id="mActions"></div></div></div>
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" aria-hidden="true"><button class="btn ghost x" id="close" type="button">Close</button><div id="dBody"></div></aside>
 
@@ -125,11 +162,20 @@ function api(path,opt){opt=opt||{};opt.headers=Object.assign({"X-Jobfishing":"1"
 function safeUrl(u){return /^https?:\/\//i.test(u||"")?u:null}
 function pill(score){var c=score==null?"":score>=80?" hi":score>=60?" mid":"";
   return h("div",{class:"pill"+c},score==null?[h("span",{},["—"])]:[h("span",{},[String(Math.round(score))])])}
+var saveMode=false,sel={};
 function rowFor(j,source){
-  var b=h("button",{class:"row",type:"button"},[pill(j.score),
+  var local=source!=="jobfishing",pick=saveMode&&local;
+  var kids=[pill(j.score),
     h("div",{},[h("div",{class:"title"},[j.title||"(untitled)"]),h("div",{class:"sub"},[[j.company,j.location].filter(Boolean).join(" · ")]),j.overview?h("div",{class:"ov"},[j.overview]):h("span")]),
-    h("span",{class:"badge"+(source==="jobfishing"?" jf":"")},[source==="jobfishing"?"jobfishing":(j.site||"local")])]);
-  b.addEventListener("click",function(){source==="jobfishing"?openHosted(j):openLocal(j.id)});return b}
+    h("span",{class:"badge"+(local?"":" jf")},[local?(j.site||"local"):(saveMode?"already in jobfishing":"jobfishing")])];
+  var box=null;
+  if(pick){box=h("input",{type:"checkbox","aria-label":"Select "+(j.title||"job")});box.checked=!!sel[j.id];kids.unshift(box)}
+  var b=h("button",{class:"row"+(pick?" sel":"")+(pick&&sel[j.id]?" picked":"")+(saveMode&&!local?" locked":""),type:"button"},kids);
+  b.addEventListener("click",function(e){
+    if(saveMode){if(!local)return;if(e.target!==box)box.checked=!box.checked;
+      if(box.checked)sel[j.id]=true;else delete sel[j.id];b.classList.toggle("picked",box.checked);updateSaveBar();return}
+    local?openLocal(j.id):openHosted(j)});
+  return b}
 function fill(el,rows,empty){el.textContent="";if(!rows.length)el.appendChild(h("div",{class:"empty"},[empty]));rows.forEach(function(r){el.appendChild(r)})}
 
 var tab="rec",offset=0,last={jobs:-1,scored:-1};
@@ -140,11 +186,20 @@ function counts(){return api("/api/counts").then(function(c){
   $("counts").textContent="";$("counts").appendChild(h("span",{},[h("b",{},[String(c.jobs)])," jobs · ",h("b",{},[String(c.scored)])," scored"]));
   var parts=[];if(c.ready>0)parts.push(c.ready+" job"+(c.ready===1?" is":"s are")+" ready to score");
   if(c.no_description>0)parts.push(c.no_description+" LinkedIn job"+(c.no_description===1?" has":"s have")+" only a title so far (your agent fetches the text for the ones worth it)");
-  $("banner").hidden=parts.length===0;$("bannerText").textContent=parts.join("; ")+". Copy the prompt and paste it into your agent.";
-  $("copyPrompt").hidden=c.ready===0;
+  $("banner").hidden=parts.length===0;$("bannerText").textContent=parts.join("; ")+". Copy the matching prompt and paste it into your agent.";
+  $("copyPrompt").hidden=c.ready===0;$("copyFetch").hidden=c.no_description===0;
+  $("crawlNext").hidden=c.no_description===0;
+  $("crawlNextText").textContent=c.no_description+" crawled job"+(c.no_description===1?" has":"s have")+" only a title so far, no job text, so they cannot be scored yet. Your agent can look at the titles, pick the ones worth scoring and fetch their text: paste this prompt into it.";
   return c})}
+var recRows=[];
+function localRecs(){return recRows.filter(function(j){return j.source==="local"})}
+function drawRec(){
+  var loc=localRecs();$("recBar").hidden=loc.length===0||saveMode;$("saveBar").hidden=!saveMode;
+  fill($("recList"),recRows.map(function(j){return rowFor(j,j.source)}),"Nothing scored 60 or higher yet. Crawl some jobs, then ask your agent to score them.");updateSaveBar()}
 function recommend(){return api("/api/recommend?limit=30&min_score=60").then(function(r){
-  $("recNote").textContent=r.note||"";fill($("recList"),r.jobs.map(function(j){return rowFor(j,j.source)}),"Nothing scored 60 or higher yet. Crawl some jobs, then ask your agent to score them.")})}
+  recRows=r.jobs;$("recNote").textContent=r.note||"";
+  var live={};localRecs().forEach(function(j){live[j.id]=true});Object.keys(sel).forEach(function(k){if(!live[k])delete sel[k]});
+  drawRec()})}
 function query(append){
   var p=new URLSearchParams({q:$("q").value,scored:$("scoredSel").value,sort:$("sortSel").value,limit:"50",offset:String(append?offset:0)});
   if($("minSel").value)p.set("min_score",$("minSel").value);
@@ -174,9 +229,44 @@ function openLocal(id){api("/api/jobs/"+id).then(function(j){
   n.push(link(j.url));n.push(h("h3",{style:"margin:16px 0 8px;font-size:14px"},["Description"]));n.push(h("pre",{class:"desc"},[j.description||"(no description)"]));
   openDrawer(n)}).catch(function(){})}
 
-$("copyPrompt").addEventListener("click",function(){api("/api/prompt").then(function(r){
-  var done=function(){$("copyPrompt").textContent="Copied";setTimeout(function(){$("copyPrompt").textContent="Copy prompt for your agent"},1600)};
-  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(r.prompt).then(done,function(){prompt("Copy this:",r.prompt)});else prompt("Copy this:",r.prompt)})});
+function copyText(text,btn,label){
+  var done=function(){btn.textContent="Copied";setTimeout(function(){btn.textContent=label},1600)};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(done,function(){prompt("Copy this:",text)});else prompt("Copy this:",text)}
+function wirePrompt(btnId,kind){var b=$(btnId),label=b.textContent;
+  b.addEventListener("click",function(){api("/api/prompt?kind="+kind).then(function(r){copyText(r.prompt,b,label)})})}
+wirePrompt("copyPrompt","score");wirePrompt("copyFetch","fetch");wirePrompt("copyFetch2","fetch");
+
+function openModal(title,body,actions){$("mTitle").textContent=title;var b=$("mBody");b.textContent="";body.forEach(function(n){b.appendChild(n)});
+  var a=$("mActions");a.textContent="";actions.forEach(function(x){var btn=h("button",{class:"btn"+(x.cls?" "+x.cls:""),type:"button"},[x.label]);btn.addEventListener("click",x.onClick);a.appendChild(btn)});
+  $("modal").hidden=false;var f=a.lastChild;if(f)f.focus()}
+function closeModal(){$("modal").hidden=true}
+$("modal").addEventListener("click",function(e){if(e.target===$("modal"))closeModal()});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("modal").hidden)closeModal()});
+
+/* Clear: take this batch off the page for good. The rows stay in the database file. */
+$("clearBtn").addEventListener("click",function(){
+  var ids=localRecs().map(function(j){return j.id}),n=ids.length,hosted=recRows.length-n;
+  openModal("Clear this batch?",[
+    h("p",{},[n+" job"+(n===1?"":"s")+" will be cleared from this dashboard for good. Please make sure you have finished with them: saved the ones you want, applied, or noted what you need."]),
+    h("p",{},["They stay in the database file on your computer but will not show up here again, and crawling the same posting again will not bring them back."+(hosted>0?" The "+hosted+" job"+(hosted===1?"":"s")+" from jobfishing stay in your jobfishing account.":"")])],
+   [{label:"Cancel",cls:"ghost",onClick:closeModal},
+    {label:"Clear "+n+" job"+(n===1?"":"s"),cls:"danger",onClick:function(){
+      api("/api/clear",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids:ids})}).then(function(){closeModal();sel={};refresh()}).catch(function(err){closeModal();alert(err.message)})}}])});
+
+/* Save: pick which jobs, then get a prompt that has the agent save them all to jobfishing in one go. */
+function updateSaveBar(){var n=Object.keys(sel).length;$("saveCount").textContent=n+" selected";$("saveGo").disabled=n===0}
+function setSaveMode(on){saveMode=on;if(!on)sel={};drawRec()}
+$("saveBtn").addEventListener("click",function(){setSaveMode(true)});
+$("saveCancel").addEventListener("click",function(){setSaveMode(false)});
+$("saveAll").addEventListener("click",function(){localRecs().forEach(function(j){sel[j.id]=true});drawRec()});
+$("saveGo").addEventListener("click",function(){
+  var ids=Object.keys(sel).join(",");
+  api("/api/prompt?kind=save&ids="+ids).then(function(r){
+    var ta=h("textarea",{readonly:"readonly","aria-label":"Prompt for your agent"});ta.value=r.prompt;
+    openModal("Paste this into your agent",[h("p",{},["It saves the "+Object.keys(sel).length+" jobs you picked to your jobfishing account, in Saved, with their scores. You need to be signed in to jobfishing."]),ta],
+      [{label:"Close",cls:"ghost",onClick:function(){closeModal();setSaveMode(false)}},
+       {label:"Copy prompt",onClick:function(){var b=$("mActions").lastChild;copyText(r.prompt,b,"Copy prompt")}}]);ta.focus();ta.select()
+  }).catch(function(err){alert(err.message)})});
 
 function lines(i){return $(i).value.split("\n").map(function(s){return s.trim()}).filter(Boolean)}
 function crawlPoll(){api("/api/crawl").then(function(s){var el=$("crawlStatus");

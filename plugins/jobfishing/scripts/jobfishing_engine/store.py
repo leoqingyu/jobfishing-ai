@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   title TEXT, company TEXT, location TEXT, country TEXT,
   description TEXT, date_posted TEXT, salary TEXT, job_type TEXT, is_remote INTEGER,
   search_term TEXT, created_at REAL NOT NULL,
+  cleared_at REAL,
   UNIQUE (site, url)
 );
 CREATE TABLE IF NOT EXISTS scores (
@@ -45,6 +46,8 @@ def connect(path: Path | None = None):
     con.execute("PRAGMA journal_mode=WAL")  # the UI reads while the agent writes
     con.execute("PRAGMA foreign_keys=ON")
     con.executescript(SCHEMA)
+    if "cleared_at" not in {r[1] for r in con.execute("PRAGMA table_info(jobs)")}:  # a database from before "clear" existed
+        con.execute("ALTER TABLE jobs ADD COLUMN cleared_at REAL")
     try:
         yield con
         con.commit()
@@ -74,7 +77,7 @@ def list_jobs(*, scored: bool | None = None, limit: int = 50, offset: int = 0, w
               has_description: bool | None = None) -> list[dict]:
     """has_description filters to jobs whose text has / has not been fetched yet (LinkedIn jobs arrive as titles only)."""
     cols = "j.*" if with_description else "j.id,j.site,j.url,j.title,j.company,j.location,j.country,j.date_posted,j.salary"
-    conds = []
+    conds = ["j.cleared_at IS NULL"]  # cleared jobs stay in the file but are out of every list
     if scored is not None:
         conds.append("s.job_id IS NOT NULL" if scored else "s.job_id IS NULL")
     if has_description is not None:
@@ -123,15 +126,30 @@ def save_scores(items: list[dict]) -> list[dict]:
 
 
 def counts() -> dict:
+    """Counts of what is still on the dashboard: cleared jobs are not counted anywhere."""
+    live = "j.cleared_at IS NULL"
     with connect() as con:
         r = con.execute(
-            "SELECT (SELECT COUNT(*) FROM jobs) jobs, (SELECT COUNT(*) FROM scores) scored, "
-            "(SELECT COUNT(*) FROM jobs j WHERE length(coalesce(j.description,'')) < 120) no_description, "
-            "(SELECT COUNT(*) FROM jobs j WHERE length(coalesce(j.description,'')) >= 120 "
+            f"SELECT (SELECT COUNT(*) FROM jobs j WHERE {live}) jobs, "
+            f"(SELECT COUNT(*) FROM scores s JOIN jobs j ON j.id=s.job_id WHERE {live}) scored, "
+            f"(SELECT COUNT(*) FROM jobs j WHERE {live} AND length(coalesce(j.description,'')) < 120) no_description, "
+            f"(SELECT COUNT(*) FROM jobs j WHERE {live} AND length(coalesce(j.description,'')) >= 120 "
             "   AND NOT EXISTS (SELECT 1 FROM scores s WHERE s.job_id=j.id)) ready").fetchone()
-    # unscored = every job without a score; ready = those with their text, i.e. the ones that can be scored right now
+    # unscored = every live job without a score; ready = those with their text, i.e. the ones that can be scored right now
     return {"jobs": r["jobs"], "scored": r["scored"], "unscored": r["jobs"] - r["scored"], "ready": r["ready"],
             "no_description": r["no_description"]}
+
+
+def clear_jobs(ids: list[int]) -> int:
+    """Take these jobs off the dashboard. The rows (and their scores) stay in the database file, and because (site, url) is
+    unique, crawling the same posting again does not bring a cleared job back."""
+    ids = [int(i) for i in ids][:500]
+    if not ids:
+        return 0
+    with connect() as con:
+        cur = con.execute(f"UPDATE jobs SET cleared_at=? WHERE cleared_at IS NULL AND id IN ({','.join('?' * len(ids))})",
+                          [time.time(), *ids])
+        return cur.rowcount
 
 
 def get_preferences() -> str | None:
@@ -146,7 +164,7 @@ def save_preferences(profile: str) -> None:
 def search_jobs(*, q: str = "", scored: str = "all", min_score: float | None = None, sort: str = "score",
                 limit: int = 100, offset: int = 0) -> dict:
     """The dashboard list: text search over title/company/location, scored filter, minimum score, sort by score or recency."""
-    where, args = [], []
+    where, args = ["j.cleared_at IS NULL"], []
     for term in q.split():
         where.append("(j.title LIKE ? OR j.company LIKE ? OR j.location LIKE ?)")
         args += [f"%{term}%"] * 3

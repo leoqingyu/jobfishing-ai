@@ -25,10 +25,29 @@ _crawl_state: dict = {"running": False, "result": None, "started": None}
 
 
 def _agent_prompt(n: int) -> str:
+    """Score the jobs that have their text. Prefers the jobfishing profile and falls back to the CV."""
     return (f"Use $jobfishing-rank to score my {n} unscored local jobs. If I'm signed in to jobfishing, score against my jobfishing "
             "profile (get_scoring_profile): it is more complete than a CV. If I'm not signed in, or have no profile there, tell me "
             "that in one sentence and fall back to my CV. Score in parallel batches, save the scores, then tell me the top matches. "
             "The jobfishing dashboard updates by itself.")
+
+
+def _fetch_prompt(n: int) -> str:
+    """LinkedIn jobs arrive as titles only; this tells the agent it can pick the worthwhile ones and fetch their text."""
+    return (f"Use $jobfishing-rank: {n} jobs I just crawled have only a title so far (LinkedIn). List them with "
+            "list_local_jobs(has_description=false), pick the ones worth scoring against my targets from the titles (skip clearly "
+            "irrelevant ones and duplicates), fetch their text with fetch_descriptions, then score them. If LinkedIn starts "
+            "rate-limiting, stop and tell me to wait a few minutes. The jobfishing dashboard updates by itself.")
+
+
+def _save_prompt(jobs: list[dict]) -> str:
+    """Save the chosen local jobs to the user's jobfishing account (they are in Saved there, with the same score)."""
+    lines = "\n".join(f"- {j['id']}: {j.get('title') or '(untitled)'}" + (f" at {j['company']}" if j.get("company") else "")
+                      for j in jobs[:60])
+    more = f"\n(and {len(jobs) - 60} more)" if len(jobs) > 60 else ""
+    return (f"Use $jobfishing-rank to save these {len(jobs)} local jobs to my jobfishing account with save_to_jobfishing, local job "
+            f"ids {[j['id'] for j in jobs]}:\n{lines}{more}\nIf any of them was scored without the full extraction, score it again "
+            "in the full form first. Then tell me which were saved and which were skipped, and why.")
 
 
 def _recommend(hosted_fetch, limit: int, min_score: float) -> dict:
@@ -100,6 +119,15 @@ def _make_handler(port: int, hosted_fetch):
                 if u.path == "/api/crawl":
                     return self._json(_crawl_state)
                 if u.path == "/api/prompt":
+                    kind = q.get("kind", "score")
+                    if kind == "fetch":
+                        return self._json({"prompt": _fetch_prompt(store.counts()["no_description"])})
+                    if kind == "save":
+                        ids = [int(x) for x in q.get("ids", "").split(",") if x.strip().isdigit()][:500]
+                        jobs = [j for j in (store.get_job(i) for i in ids) if j and not j.get("cleared_at")]
+                        if not jobs:
+                            return self._json({"error": "pick at least one job"}, 400)
+                        return self._json({"prompt": _save_prompt(jobs)})
                     return self._json({"prompt": _agent_prompt(store.counts()["ready"])})
                 return self._json({"error": "not found"}, 404)
             except (ValueError, KeyError) as e:
@@ -109,7 +137,15 @@ def _make_handler(port: int, hosted_fetch):
             # A custom header cannot be sent cross-origin without a CORS preflight, which this server never answers.
             if not self._host_ok() or self.headers.get("X-Jobfishing") != "1":
                 return self._json({"error": "forbidden"}, 403)
-            if urlparse(self.path).path != "/api/crawl":
+            path = urlparse(self.path).path
+            if path == "/api/clear":
+                try:
+                    body = json.loads(self.rfile.read(min(int(self.headers.get("Content-Length") or 0), 65536)) or b"{}")
+                    ids = [int(i) for i in body.get("ids", [])]
+                except (ValueError, TypeError) as e:
+                    return self._json({"error": f"bad request: {e}"}, 400)
+                return self._json({"cleared": store.clear_jobs(ids)})
+            if path != "/api/crawl":
                 return self._json({"error": "not found"}, 404)
             try:
                 body = json.loads(self.rfile.read(min(int(self.headers.get("Content-Length") or 0), 65536)) or b"{}")

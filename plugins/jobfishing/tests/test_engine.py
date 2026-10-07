@@ -256,3 +256,55 @@ def test_dashboard_caches_the_jobfishing_list_but_not_failures():
     except RuntimeError:
         pass
     assert f()[0]["id"] == 1 and f()[0]["id"] == 1 and len(calls) == 2      # the failure was retried, the success was kept
+
+
+# ---- clear and save prompts ---------------------------------------------------------------------------------------------
+
+def _scored_job(url, title="DE"):
+    store.upsert_jobs([{"site": "indeed", "url": url, "title": title, "company": "Acme", "description": "d" * 200}])
+    jid = [j["id"] for j in store.list_jobs() if j["url"] == url][0]
+    store.save_scores([{"job_id": jid, "skills": [], "role_score": 90, "seniority_fit": "match", "domain_fit": "same"}])
+    return jid
+
+
+def test_clear_hides_everywhere_keeps_the_row_and_survives_a_recrawl():
+    a, b = _scored_job("https://x/a"), _scored_job("https://x/b")
+    assert store.clear_jobs([a, 999]) == 1 and store.clear_jobs([a]) == 0          # only live rows count, once
+    assert [j["id"] for j in store.list_jobs()] == [b]
+    assert [j["id"] for j in store.search_jobs()["jobs"]] == [b]
+    assert store.counts()["jobs"] == 1 and store.counts()["scored"] == 1
+    assert store.get_job(a)["cleared_at"] is not None and store.get_job(a)["score"] is not None   # still in the file, score kept
+    assert store.upsert_jobs([{"site": "indeed", "url": "https://x/a", "title": "DE"}])["new"] == 0   # crawling it again adds nothing
+    assert [j["id"] for j in store.list_jobs()] == [b]                              # ...and it does not come back
+
+
+def test_a_database_from_before_clear_existed_is_migrated(tmp_path, monkeypatch):
+    import sqlite3
+    old = tmp_path / "jobfishing.db"
+    con = sqlite3.connect(old)
+    con.executescript("CREATE TABLE jobs (id INTEGER PRIMARY KEY, site TEXT NOT NULL, url TEXT NOT NULL, title TEXT, company TEXT, "
+                      "location TEXT, country TEXT, description TEXT, date_posted TEXT, salary TEXT, job_type TEXT, is_remote INTEGER, "
+                      "search_term TEXT, created_at REAL NOT NULL, UNIQUE (site, url)); "
+                      "INSERT INTO jobs (site,url,title,created_at) VALUES ('indeed','https://old/1','Old job',1);")
+    con.commit(); con.close()
+    monkeypatch.setenv("JOBFISHING_HOME", str(tmp_path))
+    assert [j["title"] for j in store.list_jobs()] == ["Old job"]                   # opens, adds the column, nothing lost
+    assert store.clear_jobs([1]) == 1 and store.list_jobs() == []
+
+
+def test_dashboard_clear_endpoint_and_the_three_prompts(dash):
+    a = _scored_job("https://x/a", "Data Engineer")
+    store.upsert_jobs([{"site": "linkedin", "url": "https://www.linkedin.com/jobs/view/t-4000000001", "title": "Title only"}])
+    st, _ = _req(dash, "POST", "/api/clear", body=_json.dumps({"ids": [a]}), headers={"Content-Type": "application/json"})
+    assert st == 403 and store.counts()["jobs"] == 2                                # no marker header: refused, nothing cleared
+    st, body = _req(dash, "GET", "/api/prompt?kind=fetch")
+    fetch = _json.loads(body)["prompt"]
+    assert "1 jobs I just crawled have only a title" in fetch and "fetch_descriptions" in fetch and "rate-limiting" in fetch
+    st, body = _req(dash, "GET", f"/api/prompt?kind=save&ids={a},9999")
+    save = _json.loads(body)["prompt"]
+    assert f"[{a}]" in save and "Data Engineer at Acme" in save and "save_to_jobfishing" in save and "full form" in save
+    assert _req(dash, "GET", "/api/prompt?kind=save&ids=")[0] == 400                # nothing picked
+    st, body = _req(dash, "POST", "/api/clear", body=_json.dumps({"ids": [a]}),
+                    headers={"X-Jobfishing": "1", "Content-Type": "application/json"})
+    assert st == 200 and _json.loads(body) == {"cleared": 1} and store.counts()["jobs"] == 1
+    assert _req(dash, "GET", f"/api/prompt?kind=save&ids={a}")[0] == 400            # a cleared job cannot be put in a save prompt
