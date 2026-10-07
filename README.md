@@ -105,7 +105,7 @@ curl -fsSL https://jobfish.ing/install | sh
 irm https://jobfish.ing/install.ps1 | iex
 ```
 
-Then restart your agent and say: **find me jobs**. Finding and ranking jobs needs no jobfishing account.
+Then restart your agent and say: **find me jobs**. Finding and ranking jobs needs no jobfishing account. Please read the [Disclaimer and data](#disclaimer-and-data) section first: it is short, and it says what runs on your computer and what leaves it.
 
 What the script does, and nothing else: installs [uv](https://docs.astral.sh/uv/) if it is missing (uv brings its own Python), downloads this repo's `plugins/jobfishing`, and then runs `jobfishing install`, which
 
@@ -141,6 +141,32 @@ This repo is also a [Claude Code plugin marketplace](https://code.claude.com/doc
 Point Codex at `plugins/jobfishing` per its plugin-source instructions; the manifest lives at `plugins/jobfishing/.codex-plugin/plugin.json`.
 
 Use one method or the other, not both, or you will see two copies of the skills. Both share one local MCP server and one LaTeX environment for tailored materials, so `jobfishing-materials-setup` only needs to run once per machine.
+
+## Disclaimer and data
+
+jobfishing is open source (MIT) and comes **as is, without warranty of any kind**. This section says plainly what it does on your computer and what leaves it. It is not legal advice.
+
+**Crawling is done from your own computer and is your responsibility.**
+- `crawl_jobs` and `fetch_descriptions` send ordinary web requests to LinkedIn and Indeed from your connection, with no proxy. Those sites' terms restrict automated access, and they may limit or block your connection. You are responsible for how you use this and for following the terms of any site you access. Keep searches modest: a few titles and places per run, not hundreds. If LinkedIn starts limiting you, stop and wait; the tools stop on their own and say so.
+- jobfishing's own job list is crawled by jobfishing with its own infrastructure; using it does not run anything from your connection.
+
+**Scores and recommendations are a rough guide, not advice.**
+- Local scores come from judgments your own AI agent makes, combined by a fixed formula. Different models judge differently, and a posting may be misread. Use them to sort, then read the posting yourself. Nothing here predicts whether you will be hired.
+- Everything the agent writes for you (tailored CVs, cover letters, form answers) is generated. Read it before it is sent. You are responsible for what you submit and for its being true.
+
+**Applying and reading your inbox are your decisions.**
+- The application skills drive your own, visible Chrome, with your logins. Review what they do, especially before a final submit, and for any site or mailbox you would not want automated.
+
+**What stays on your computer, and what leaves it**
+- Crawled jobs and scores are stored locally in `~/.jobfishing/` (on Windows `%USERPROFILE%\.jobfishing\`). The dashboard runs only on your machine (`127.0.0.1`). There is no telemetry or usage tracking in the local tools.
+- The job texts and CV or profile your agent reads go to **whichever AI provider your agent uses** (OpenAI, Anthropic, ...), under that provider's terms. jobfishing does not control that.
+- Without a jobfishing account, the only other network traffic is your searches to LinkedIn and Indeed, and fetching updates (below).
+- **Signed in to jobfishing:** the tools talk to `app.jobfish.ing`. They read your profile, jobs, resumes and application tracking, and write what you ask them to: saved jobs with their scores, cover letters and resumes, application status. A job you save from a local crawl is private to your account. The sign-in token is kept in `~/.jobfishing/agent_token`, readable only by you on macOS and Linux. You can revoke it from the app.
+- Imported jobs are scored from the extraction and judgments your agent supplies; jobfishing does not run a model on them.
+
+**The tools update themselves.** When your agent starts them, `uv` checks this repository for a newer version and fetches it, so the code that runs on your computer is whatever is on the `main` branch at that moment. Read the code if you want to know what it does; it is all here. To stop using it, run the uninstall command above and delete `~/.jobfishing/`.
+
+Questions or concerns: hello@jobfish.ing.
 
 ## Contributing
 
