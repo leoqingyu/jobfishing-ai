@@ -58,4 +58,4 @@ The candidate's industry, subject-matter and education against what the job need
 
 ## Hard blockers
 If the posting states something the candidate clearly lacks and cannot get (a required language, a required work permit, a
-required licence), say so in `overview`. Do not change the numbers to punish it; the user decides.
+required licence), say so in `overview`. Compare permit and visa requirements with the work authorization in the candidate profile. Do not change the numbers to punish it; the user decides.

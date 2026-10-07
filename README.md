@@ -1,8 +1,11 @@
 # jobfishing AI Skills
 
-Open-source [Claude Code](https://code.claude.com) and [Codex](https://openai.com/index/introducing-codex/) plugin that lets an AI agent drive the [jobfishing](https://app.jobfish.ing) job-search workflow end to end: ranking jobs against your preferences, applying through your own visible Chrome session, tailoring resumes and cover letters, analyzing outcomes, and prepping you for interviews — all from data jobfishing already has, batched instead of one job at a time.
+Open-source [Claude Code](https://code.claude.com) and [Codex](https://openai.com/index/introducing-codex/) tools that let an AI agent run your job search: **find** jobs, **score** them against your CV and profile, **recommend** the best, and, with a [jobfishing](https://app.jobfish.ing) account, **apply** through your own visible Chrome, tailor resumes and cover letters, track outcomes, and prep you for interviews.
 
-jobfishing stays the single source of truth for your profile, resumes, jobs, saved answers, and application status. The agent reads and writes that data only through the bundled MCP server, and only touches Gmail, Outlook Web, and job boards through your own already-logged-in Chrome — never a hidden or headless browser.
+Two ways in, and they work together:
+
+- **No account, fully local.** Crawl jobs for any market (Hong Kong, UK, US...) into a SQLite database on your machine, have your agent score many at once, and get ranked recommendations on a small local dashboard. Nothing leaves your computer except the job searches.
+- **With a jobfishing account.** jobfishing already crawls Switzerland, Luxembourg, Frankfurt, Munich, Stuttgart, Amsterdam and Rotterdam, scores them for you, and keeps your profile, resumes, saved answers and application status. Your agent reads and writes that data only through the bundled MCP server, and only touches Gmail, Outlook Web and job boards through your own already-logged-in Chrome, never a hidden or headless browser. Your local jobs and the jobfishing list are ranked together on one scale.
 
 ## Skills
 

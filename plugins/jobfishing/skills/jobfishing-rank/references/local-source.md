@@ -4,9 +4,14 @@ Jobs from outside the jobfishing library live in a local SQLite database on the 
 resumes and applying stay in the jobfishing app: to track or apply to a local job, create it there with
 `create_manual_tracking`, then use the other jobfishing skills.
 
-Before this, you have the confirmed preference profile and the user's CV. Read the CV yourself and do not store it. Write a
-short **candidate profile** (about 250 words): what the person has actually done, with tools, scope, seniority and domain,
-and their education; judge from what they did, not from titles. Every scoring step uses this one profile.
+## 0. Build the candidate profile
+
+Scoring is only as good as what you know about the person. Use the best source available:
+
+1. **Signed in with a filled profile:** call `get_experience_context` and use all of it: Basic Info (including work authorization and visa status), experience, skills and the saved answers (including `job_ranking_preferences_v1`). Add the CV if the user gives one. Do not ask for what jobfishing already holds.
+2. **Not signed in, or signed in with an empty profile:** say once, in one sentence, that scoring is better if they sign in to jobfishing and fill in their profile (experience, work authorization), and offer `start_device_authorization`. If they decline, or have no profile, score from the CV alone. If the target market needs a work permit or visa, ask for their status directly instead of guessing.
+
+Read the CV yourself and do not store it. From all of this, write a short **candidate profile** (about 250 words): what the person has actually done, with tools, scope, seniority and domain, their education, and their work authorization for the target market. Judge from what they did, not from titles. Every scoring step uses this one profile, so give sub-agents the finished profile, never the raw files.
 
 ## 1. Crawl
 
