@@ -29,12 +29,46 @@ Full first-connection and day-to-day usage walkthroughs:
 
 ## Install
 
-This repo is both a [Claude Code plugin marketplace](https://code.claude.com/docs/en/plugins) and a Codex plugin source, rooted at `plugins/jobfishing`.
+One line, in a terminal. It sets jobfishing up for Claude Code and Codex, whichever you have, and needs no Python, no pip and no git.
+
+**macOS / Linux**
+
+```bash
+curl -fsSL https://jobfish.ing/install | sh
+```
+
+**Windows (PowerShell)**
+
+```powershell
+irm https://jobfish.ing/install.ps1 | iex
+```
+
+Then restart your agent and say: **find me jobs**. Finding and ranking jobs needs no jobfishing account.
+
+What the script does, and nothing else: installs [uv](https://docs.astral.sh/uv/) if it is missing (uv brings its own Python), downloads this repo's `plugins/jobfishing`, and then runs `jobfishing install`, which
+
+- registers the MCP server with **Claude Code** (`claude mcp add --scope user`), and copies the skills to `~/.claude/skills`;
+- registers the MCP server with **Codex** (a `[mcp_servers.jobfishing]` table in `~/.codex/config.toml`), and copies the skills to `~/.agents/skills`.
+
+It only configures the agents it finds on the machine; if you install an agent later, run the line again (it is safe to repeat). Read the scripts first if you like: [install.sh](https://jobfish.ing/install.sh), [install.ps1](https://jobfish.ing/install.ps1).
+
+**Update / uninstall**
+
+```bash
+uvx --refresh --from "https://github.com/leoqingyu/jobfishing-ai/archive/refs/heads/main.zip#subdirectory=plugins/jobfishing" jobfishing install     # update
+uvx --from "https://github.com/leoqingyu/jobfishing-ai/archive/refs/heads/main.zip#subdirectory=plugins/jobfishing" jobfishing uninstall            # remove
+```
+
+Your local jobs and scores live in `~/.jobfishing/`; delete that folder to clear them.
+
+### Alternative: install as a plugin
+
+This repo is also a [Claude Code plugin marketplace](https://code.claude.com/docs/en/plugins) and a Codex plugin source, rooted at `plugins/jobfishing`. You need [uv](https://docs.astral.sh/uv/) installed first.
 
 **Claude Code**
 
 ```
-/plugin marketplace add <this-repo-url>
+/plugin marketplace add leoqingyu/jobfishing-ai
 /plugin install jobfishing
 ```
 
@@ -42,7 +76,7 @@ This repo is both a [Claude Code plugin marketplace](https://code.claude.com/doc
 
 Point Codex at `plugins/jobfishing` per its plugin-source instructions; the manifest lives at `plugins/jobfishing/.codex-plugin/plugin.json`.
 
-The plugin starts its local MCP server through [`uv`](https://docs.astral.sh/uv/), which fetches its own Python and dependencies on first use: no Python install, no `pip`. You need only `uv`; if it is missing, ask your agent to use `jobfishing-setup` and it will install it with your permission. Finding and ranking jobs needs no jobfishing account. Both hosts share one local MCP server and one LaTeX environment for tailored materials, so `jobfishing-materials-setup` only needs to run once per machine.
+Use one method or the other, not both, or you will see two copies of the skills. Both share one local MCP server and one LaTeX environment for tailored materials, so `jobfishing-materials-setup` only needs to run once per machine.
 
 ## Contributing
 
