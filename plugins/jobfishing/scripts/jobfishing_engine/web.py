@@ -25,8 +25,10 @@ _crawl_state: dict = {"running": False, "result": None, "started": None}
 
 
 def _agent_prompt(n: int) -> str:
-    return (f"Use $jobfishing-rank to score my {n} unscored local jobs against my CV. Score them in parallel batches, save the "
-            "scores, then tell me the top matches. The jobfishing dashboard updates by itself.")
+    return (f"Use $jobfishing-rank to score my {n} unscored local jobs. If I'm signed in to jobfishing, score against my jobfishing "
+            "profile (get_scoring_profile): it is more complete than a CV. If I'm not signed in, or have no profile there, tell me "
+            "that in one sentence and fall back to my CV. Score in parallel batches, save the scores, then tell me the top matches. "
+            "The jobfishing dashboard updates by itself.")
 
 
 def _recommend(hosted_fetch, limit: int, min_score: float) -> dict:
@@ -98,7 +100,7 @@ def _make_handler(port: int, hosted_fetch):
                 if u.path == "/api/crawl":
                     return self._json(_crawl_state)
                 if u.path == "/api/prompt":
-                    return self._json({"prompt": _agent_prompt(store.counts()["unscored"])})
+                    return self._json({"prompt": _agent_prompt(store.counts()["ready"])})
                 return self._json({"error": "not found"}, 404)
             except (ValueError, KeyError) as e:
                 return self._json({"error": str(e)}, 400)
@@ -117,7 +119,7 @@ def _make_handler(port: int, hosted_fetch):
                     return self._json({"error": "give at least one job title and one place"}, 400)
                 sites = tuple(x for x in body.get("sites", _crawl.SITES) if x in _crawl.SITES) or _crawl.SITES
                 kw = dict(sites=sites, hours_old=int(body.get("hours_old", 72)), country=(body.get("country") or None),
-                          per_search=max(1, min(int(body.get("per_search", 30)), 100)))
+                          per_search=max(1, min(int(body.get("per_search", _crawl.DEFAULT_PER_SEARCH)), _crawl.MAX_PER_SEARCH)))
             except (ValueError, TypeError) as e:
                 return self._json({"error": f"bad request: {e}"}, 400)
             with _lock:

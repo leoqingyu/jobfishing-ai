@@ -4,7 +4,7 @@ Open-source [Claude Code](https://code.claude.com) and [Codex](https://openai.co
 
 Two ways in, and they work together:
 
-- **No account, fully local.** Crawl jobs for any market (Hong Kong, UK, US...) into a SQLite database on your machine, have your agent score many at once, and get ranked recommendations on a small local dashboard. Nothing leaves your computer except the job searches.
+- **No account, fully local.** Crawl jobs for any market (Hong Kong, UK, US...) into a SQLite database on your machine (listing first, then the text of the jobs worth it, gently, since there is no proxy), have your agent score many at once, and get ranked recommendations on a small local dashboard. Nothing leaves your computer except the job searches.
 - **With a jobfishing account.** jobfishing already crawls Switzerland, Luxembourg, Frankfurt, Munich, Stuttgart, Amsterdam and Rotterdam, scores them for you, and keeps your profile, resumes, saved answers and application status. Your agent reads and writes that data only through the bundled MCP server, and only touches Gmail, Outlook Web and job boards through your own already-logged-in Chrome, never a hidden or headless browser. Your local jobs and the jobfishing list are ranked together on one scale.
 
 ## Skills

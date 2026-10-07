@@ -70,14 +70,27 @@ def upsert_jobs(rows: list[dict]) -> dict:
     return {"received": len(rows), "new": new}
 
 
-def list_jobs(*, scored: bool | None = None, limit: int = 50, offset: int = 0, with_description: bool = False) -> list[dict]:
+def list_jobs(*, scored: bool | None = None, limit: int = 50, offset: int = 0, with_description: bool = False,
+              has_description: bool | None = None) -> list[dict]:
+    """has_description filters to jobs whose text has / has not been fetched yet (LinkedIn jobs arrive as titles only)."""
     cols = "j.*" if with_description else "j.id,j.site,j.url,j.title,j.company,j.location,j.country,j.date_posted,j.salary"
-    where = "" if scored is None else ("WHERE s.job_id IS NOT NULL" if scored else "WHERE s.job_id IS NULL")
+    conds = []
+    if scored is not None:
+        conds.append("s.job_id IS NOT NULL" if scored else "s.job_id IS NULL")
+    if has_description is not None:
+        conds.append(("length(coalesce(j.description,'')) >= 120") if has_description else "length(coalesce(j.description,'')) < 120")
+    where = ("WHERE " + " AND ".join(conds)) if conds else ""
     with connect() as con:
         rows = con.execute(
-            f"SELECT {cols}, s.total AS score, s.decision FROM jobs j LEFT JOIN scores s ON s.job_id=j.id {where} "
+            f"SELECT {cols}, length(coalesce(j.description,'')) >= 120 AS has_description, s.total AS score, s.decision "
+            f"FROM jobs j LEFT JOIN scores s ON s.job_id=j.id {where} "
             "ORDER BY j.created_at DESC, j.id DESC LIMIT ? OFFSET ?", (limit, offset)).fetchall()
     return [dict(r) for r in rows]
+
+
+def set_description(job_id: int, text: str) -> None:
+    with connect() as con:
+        con.execute("UPDATE jobs SET description=? WHERE id=?", (text, job_id))
 
 
 def get_job(job_id: int) -> dict | None:
@@ -111,8 +124,14 @@ def save_scores(items: list[dict]) -> list[dict]:
 
 def counts() -> dict:
     with connect() as con:
-        r = con.execute("SELECT (SELECT COUNT(*) FROM jobs) jobs, (SELECT COUNT(*) FROM scores) scored").fetchone()
-    return {"jobs": r["jobs"], "scored": r["scored"], "unscored": r["jobs"] - r["scored"]}
+        r = con.execute(
+            "SELECT (SELECT COUNT(*) FROM jobs) jobs, (SELECT COUNT(*) FROM scores) scored, "
+            "(SELECT COUNT(*) FROM jobs j WHERE length(coalesce(j.description,'')) < 120) no_description, "
+            "(SELECT COUNT(*) FROM jobs j WHERE length(coalesce(j.description,'')) >= 120 "
+            "   AND NOT EXISTS (SELECT 1 FROM scores s WHERE s.job_id=j.id)) ready").fetchone()
+    # unscored = every job without a score; ready = those with their text, i.e. the ones that can be scored right now
+    return {"jobs": r["jobs"], "scored": r["scored"], "unscored": r["jobs"] - r["scored"], "ready": r["ready"],
+            "no_description": r["no_description"]}
 
 
 def get_preferences() -> str | None:

@@ -16,7 +16,7 @@ Read [preference-interview.md](references/preference-interview.md) before interv
 Jobs can come from two places, and the same preference profile ranks both:
 
 - **jobfishing list** (the user is signed in): the app already crawled and scored jobs in Switzerland, Luxembourg, Frankfurt, Munich, Stuttgart, Amsterdam and Rotterdam. Read it with `list_jobs`; this is the main flow below.
-- **local crawl** (no account needed): for any other market or a specific search, crawl into a local database, score many jobs at once and recommend. Read [local-source.md](references/local-source.md) and [judging.md](references/judging.md) for this flow; `recommend` then ranks local and jobfishing jobs on one scale.
+- **local crawl** (no account needed): for any other market or a specific search, crawl listings into a local database, fetch the text of the ones worth it, score many jobs at once and recommend. Read [local-source.md](references/local-source.md) and [judging.md](references/judging.md) for this flow; `recommend` then ranks local and jobfishing jobs on one scale.
 
 If the jobs the user wants are in a market jobfishing covers and they are signed in, use the list and skip crawling. If they are not signed in, only the local flow is available; say so plainly and do not ask them to sign in unless they want tracking or the app's own scores.
 

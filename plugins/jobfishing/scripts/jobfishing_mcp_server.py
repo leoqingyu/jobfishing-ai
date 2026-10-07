@@ -846,13 +846,17 @@ def crawl_jobs(
     places: list[str],
     sites: list[str] | None = None,
     hours_old: int = 72,
-    per_search: int = 30,
+    per_search: int = 100,
     country: str | None = None,
 ) -> dict[str, Any]:
     """Fetch jobs into the local database, in parallel and without any account. Use it for markets the jobfishing
     library does not cover (Hong Kong, UK, US ...), or to look for something specific.
 
-    Every term is searched in every place on every site at once, about 3 s for a handful of searches. `terms` are job
+    Two stages, like the jobfishing app: this call gets the LISTING. Indeed jobs arrive with their full text; LinkedIn jobs arrive
+    as titles only (`has_description` false). Read the titles, drop what is clearly irrelevant or duplicated, then call
+    fetch_descriptions for the LinkedIn jobs worth scoring. A search takes seconds (Indeed) to about 15 s per 40 LinkedIn
+    results (paging is slow); several searches run at once. `per_search` is how many results to page through per search
+    (default 100, at most 300). `terms` are job
     titles like "data engineer"; `places` are "Zurich, Switzerland" style strings (about a 35 km radius is searched);
     `sites` defaults to linkedin and indeed; `hours_old` is the posting window; `country` is Indeed's country name
     ("switzerland", "hong kong", "united kingdom", "usa"). Duplicates across searches are dropped only by link; judging
@@ -860,19 +864,32 @@ def crawl_jobs(
     Be gentle: a few terms and places per call, no loops of hundreds, or the sites will rate-limit this IP."""
     return _crawl.crawl(
         [t for t in terms if t.strip()], [p for p in places if p.strip()],
-        sites=tuple(sites or _crawl.SITES), hours_old=hours_old, per_search=max(1, min(per_search, 100)), country=country,
+        sites=tuple(sites or _crawl.SITES), hours_old=hours_old, per_search=per_search, country=country,
     )
+
+
+@mcp.tool()
+def fetch_descriptions(job_ids: list[int]) -> dict[str, Any]:
+    """Second stage for LinkedIn: fetch the posting text of the given local jobs (the ones you picked from the titles), a few at
+    a time and gently, because there is no proxy and LinkedIn limits one address quickly. Returns how many were fetched. If
+    `rate_limited` is true, tell the user LinkedIn is limiting this connection, to wait a few minutes and retry `retry_ids`, and
+    mention that the jobfishing app already crawls LinkedIn continuously with its own proxies (its list has these jobs with full
+    text for Switzerland, Luxembourg, Frankfurt, Munich, Stuttgart, Amsterdam and Rotterdam). Do not loop retries."""
+    return _crawl.fetch_descriptions([int(i) for i in job_ids])
 
 
 @mcp.tool()
 def list_local_jobs(
     scored: bool | None = None, limit: int = 50, offset: int = 0, with_description: bool = False,
+    has_description: bool | None = None,
 ) -> dict[str, Any]:
-    """Page through the locally crawled jobs, newest first. `scored` true/false filters to scored/unscored; leave it out
-    for all. `with_description` adds the full posting text (needed to score; keep `limit` small then)."""
+    """Page through the locally crawled jobs, newest first. `scored` true/false filters to scored/unscored; `has_description`
+    false lists the LinkedIn jobs still waiting for their text (titles only, pick from these for fetch_descriptions), true the
+    ones that can be scored now; leave both out for all. `with_description` adds the full posting text (needed to score; keep
+    `limit` small then). `counts` shows jobs, scored, ready (have text, not scored) and no_description."""
     limit = max(1, min(int(limit), 200))
     return {"counts": _store.counts(), "jobs": _store.list_jobs(
-        scored=scored, limit=limit, offset=max(0, int(offset)), with_description=with_description)}
+        scored=scored, limit=limit, offset=max(0, int(offset)), with_description=with_description, has_description=has_description)}
 
 
 @mcp.tool()
@@ -941,6 +958,16 @@ def open_dashboard(open_browser: bool = True) -> dict[str, Any]:
     def hosted() -> list[dict[str, Any]]:
         return cached_jobs if cached_jobs is not None else _call("GET", "/api/v1/agent/jobs")["jobs"]
     return {"url": _web.serve(hosted, open_browser=open_browser)}
+
+
+@mcp.tool()
+def get_scoring_profile() -> dict[str, Any]:
+    """The candidate profile jobfishing itself scores with (needs authorization). Prefer it over a CV when scoring local jobs:
+    it merges every CV version and the experience library into one structured profile, so it is more complete. `source` is "p"
+    (the built profile), "context_fallback" (rendered from the experience library, no profile built yet) or "none" (nothing on
+    file: tell the user and fall back to their CV). It also carries work authorization, languages and years, which jobfishing
+    handles outside the profile text, so use them when judging permit, visa and language requirements."""
+    return _call("GET", "/api/v1/agent/scoring-profile")
 
 
 @mcp.tool()

@@ -138,7 +138,10 @@ function show(t){tab=t;["rec","all","crawl"].forEach(function(x){$("p-"+x).hidde
 
 function counts(){return api("/api/counts").then(function(c){
   $("counts").textContent="";$("counts").appendChild(h("span",{},[h("b",{},[String(c.jobs)])," jobs · ",h("b",{},[String(c.scored)])," scored"]));
-  $("banner").hidden=c.unscored===0;$("bannerText").textContent=c.unscored+" job"+(c.unscored===1?" isn't":"s aren't")+" scored yet. Your agent scores them against your CV; copy the prompt and paste it in.";
+  var parts=[];if(c.ready>0)parts.push(c.ready+" job"+(c.ready===1?" is":"s are")+" ready to score");
+  if(c.no_description>0)parts.push(c.no_description+" LinkedIn job"+(c.no_description===1?" has":"s have")+" only a title so far (your agent fetches the text for the ones worth it)");
+  $("banner").hidden=parts.length===0;$("bannerText").textContent=parts.join("; ")+". Copy the prompt and paste it into your agent.";
+  $("copyPrompt").hidden=c.ready===0;
   return c})}
 function recommend(){return api("/api/recommend?limit=30&min_score=60").then(function(r){
   $("recNote").textContent=r.note||"";fill($("recList"),r.jobs.map(function(j){return rowFor(j,j.source)}),"Nothing scored 60 or higher yet. Crawl some jobs, then ask your agent to score them.")})}

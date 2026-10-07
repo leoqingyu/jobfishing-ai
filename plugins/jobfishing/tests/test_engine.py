@@ -41,7 +41,7 @@ def test_store_roundtrip_and_url_uniqueness():
     out = store.save_scores([{"job_id": job["id"], "skills": [], "role_score": 90, "seniority_fit": "match", "domain_fit": "same"},
                              {"job_id": 999}])
     assert out[0]["decision"] == "generate" and out[1]["error"]
-    assert store.counts() == {"jobs": 1, "scored": 1, "unscored": 0}
+    assert store.counts() == {"jobs": 1, "scored": 1, "unscored": 0, "ready": 0, "no_description": 1}
     assert store.get_job(job["id"])["score"] == out[0]["total"]
 
 
@@ -191,3 +191,52 @@ def test_save_to_jobfishing_sends_extraction_and_judgment(monkeypatch):
     item = body["items"][0]
     assert item["title"] == "DE" and item["extraction"]["skills"][0]["label"] == "SQL"
     assert item["judgment"]["skill_matches"] == ["s1:full", "s2:weak"] and "extraction" not in item["judgment"]
+
+
+# ---- two-stage LinkedIn ------------------------------------------------------------------------------------------------
+
+def test_linkedin_job_id_from_urls():
+    from jobfishing_engine import crawl
+    assert crawl.linkedin_job_id("https://hk.linkedin.com/jobs/view/data-engineer-at-acme-4012345678?trk=x") == "4012345678"
+    assert crawl.linkedin_job_id("https://www.linkedin.com/jobs/view/4012345678/") == "4012345678"
+    assert crawl.linkedin_job_id("https://hk.indeed.com/viewjob?jk=abc") is None
+
+
+def _linkedin_rows(n):
+    return [{"site": "linkedin", "url": f"https://www.linkedin.com/jobs/view/t-{4000000000 + i}", "title": f"T{i}"} for i in range(n)]
+
+
+def test_fetch_descriptions_stores_text_and_counts(monkeypatch):
+    from jobfishing_engine import crawl
+    store.upsert_jobs(_linkedin_rows(3) + [{"site": "indeed", "url": "https://i/1", "title": "I", "description": "x" * 200}])
+    monkeypatch.setattr(crawl, "_fetch_text", lambda session, lid: ("ok", "Posting text. " * 20) if not lid.endswith("2") else ("empty", None))
+    monkeypatch.setattr(crawl.time, "sleep", lambda s: None)
+    ids = [j["id"] for j in store.list_jobs(has_description=False)]
+    res = crawl.fetch_descriptions(ids + [999])
+    assert res["fetched"] == 2 and res["no_text_on_page"] == 1 and res["rate_limited"] is False and "message" not in res
+    assert store.counts()["ready"] == 3 and store.counts()["no_description"] == 1       # 2 fetched + the Indeed job, 1 still titles-only
+    assert crawl.fetch_descriptions(ids)["fetched"] == 0                                 # already-fetched jobs are not asked for again
+
+
+def test_fetch_descriptions_stops_at_the_first_rate_limit_and_points_to_the_app(monkeypatch):
+    from jobfishing_engine import crawl
+    store.upsert_jobs(_linkedin_rows(6))
+    calls = []
+    def fake(session, lid):
+        calls.append(lid)
+        return ("rate_limited", None) if len(calls) >= 2 else ("ok", "Posting text. " * 20)
+    monkeypatch.setattr(crawl, "_fetch_text", fake)
+    monkeypatch.setattr(crawl.time, "sleep", lambda s: None)
+    res = crawl.fetch_descriptions([j["id"] for j in store.list_jobs()], workers=1)
+    assert res["rate_limited"] is True and res["fetched"] == 1 and len(res["retry_ids"]) == 5
+    assert "wait a few minutes" in res["message"].lower() and "jobfishing app" in res["message"]
+    assert len(calls) == 2                                                               # it did not keep hammering after the limit
+
+
+def test_ready_jobs_filter_and_dashboard_prompt_uses_the_jobfishing_profile():
+    from jobfishing_engine import web
+    store.upsert_jobs(_linkedin_rows(2) + [{"site": "indeed", "url": "https://i/1", "title": "I", "description": "x" * 200}])
+    assert [j["site"] for j in store.list_jobs(scored=False, has_description=True)] == ["indeed"]
+    assert len(store.list_jobs(has_description=False)) == 2
+    p = web._agent_prompt(store.counts()["ready"])
+    assert "my 1 unscored" in p and "get_scoring_profile" in p and "fall back to my CV" in p
