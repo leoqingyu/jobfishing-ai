@@ -1,5 +1,7 @@
 # jobfishing AI Skills
 
+**jobfishing** ([jobfish.ing](https://jobfish.ing), formerly JobMatchFlow) is a free AI job search and CV matching service for Switzerland, Luxembourg, Germany and the Netherlands. This repository is its open-source part: tools that let your own AI agent run the search for any country. (The name is a pun on fishing for jobs; it has nothing to do with jobs in the fishing industry. More: [jobfish.ing/about](https://jobfish.ing/about).)
+
 Open-source [Claude Code](https://code.claude.com) and [Codex](https://openai.com/index/introducing-codex/) tools that let an AI agent run your job search: **find** jobs, **score** them against your CV and profile, **recommend** the best, and, with a [jobfishing](https://app.jobfish.ing) account, **apply** through your own visible Chrome, tailor resumes and cover letters, track outcomes, and prep you for interviews.
 
 Two ways in, and they work together:
