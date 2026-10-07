@@ -71,7 +71,7 @@ Do not use the plugin directory as your day-to-day application-submission Projec
 
 ### 2. Install uv (the only thing to install)
 
-The plugin starts itself with [uv](https://docs.astral.sh/uv/), which downloads the right Python and every dependency on first use. You do not install Python and you run no `pip`. uv also needs `git` on the PATH to fetch the plugin the first time.
+The plugin starts itself with [uv](https://docs.astral.sh/uv/), which downloads the right Python and every dependency on first use. You do not install Python and you run no `pip`.
 
 Windows PowerShell:
 

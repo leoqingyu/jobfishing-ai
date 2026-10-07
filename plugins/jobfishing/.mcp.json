@@ -4,7 +4,7 @@
       "command": "uvx",
       "args": [
         "--from",
-        "git+https://github.com/leoqingyu/jobfishing-ai#subdirectory=plugins/jobfishing",
+        "https://github.com/leoqingyu/jobfishing-ai/archive/refs/heads/main.zip#subdirectory=plugins/jobfishing",
         "jobfishing-mcp"
       ]
     }

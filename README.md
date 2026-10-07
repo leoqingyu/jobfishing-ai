@@ -42,7 +42,7 @@ This repo is both a [Claude Code plugin marketplace](https://code.claude.com/doc
 
 Point Codex at `plugins/jobfishing` per its plugin-source instructions; the manifest lives at `plugins/jobfishing/.codex-plugin/plugin.json`.
 
-The plugin starts its local MCP server through [`uv`](https://docs.astral.sh/uv/), which fetches its own Python and dependencies on first use: no Python install, no `pip`. You need `uv` and `git`; if `uv` is missing, ask your agent to use `jobfishing-setup` and it will install it with your permission. Finding and ranking jobs needs no jobfishing account. Both hosts share one local MCP server and one LaTeX environment for tailored materials, so `jobfishing-materials-setup` only needs to run once per machine.
+The plugin starts its local MCP server through [`uv`](https://docs.astral.sh/uv/), which fetches its own Python and dependencies on first use: no Python install, no `pip`. You need only `uv`; if it is missing, ask your agent to use `jobfishing-setup` and it will install it with your permission. Finding and ranking jobs needs no jobfishing account. Both hosts share one local MCP server and one LaTeX environment for tailored materials, so `jobfishing-materials-setup` only needs to run once per machine.
 
 ## Contributing
 

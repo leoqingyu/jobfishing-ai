@@ -10,14 +10,14 @@ The plugin starts its tools with `uvx`, which needs [uv](https://docs.astral.sh/
 ## Steps
 
 1. Check whether the tools are there: call a jobfishing tool such as `get_local_preferences`. If it works, say jobfishing is ready and stop.
-2. Otherwise check `uv --version` and `git --version` (uv needs git to fetch the plugin the first time; if git is missing, tell the user to install it from git-scm.com and stop).
+2. Otherwise check `uv --version`.
 3. If uv is missing, tell the user in one sentence that jobfishing needs uv, that installing it is one command, and ask for permission. On approval run the official installer:
    - macOS / Linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`
    - Windows (PowerShell): `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
 4. Ask the user to restart the agent session (or reload plugins) so the tools start with uv on the PATH, then re-check with `get_local_preferences`.
-5. If the tools still fail, run `uvx --from "git+https://github.com/leoqingyu/jobfishing-ai#subdirectory=plugins/jobfishing" jobfishing-mcp` once in a shell, read the error and report it; do not install packages by hand or create another client.
+5. If the tools still fail, run `uvx --from "https://github.com/leoqingyu/jobfishing-ai/archive/refs/heads/main.zip#subdirectory=plugins/jobfishing" jobfishing-mcp` once in a shell, read the error and report it; do not install packages by hand or create another client.
 
-To update jobfishing later: `uvx --refresh --from "git+https://github.com/leoqingyu/jobfishing-ai#subdirectory=plugins/jobfishing" jobfishing-mcp --help`, then restart the session.
+To update jobfishing later: `uvx --refresh --from "https://github.com/leoqingyu/jobfishing-ai/archive/refs/heads/main.zip#subdirectory=plugins/jobfishing" jobfishing-mcp --help`, then restart the session.
 
 ## Rules
 

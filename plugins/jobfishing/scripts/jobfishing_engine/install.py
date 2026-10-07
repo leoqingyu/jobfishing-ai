@@ -14,7 +14,7 @@ import sys
 from importlib import resources
 from pathlib import Path
 
-SPEC = os.environ.get("JOBFISHING_SPEC") or "git+https://github.com/leoqingyu/jobfishing-ai#subdirectory=plugins/jobfishing"
+SPEC = os.environ.get("JOBFISHING_SPEC") or "https://github.com/leoqingyu/jobfishing-ai/archive/refs/heads/main.zip#subdirectory=plugins/jobfishing"
 MCP_ARGS = ["--from", SPEC, "jobfishing-mcp"]
 SKILL_PREFIX = "jobfishing-"
 TABLE = "[mcp_servers.jobfishing]"

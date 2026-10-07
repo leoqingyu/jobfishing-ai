@@ -66,7 +66,7 @@ Do not use this plugin directory as your day-to-day Codex Project for submitting
 
 ### 2. Install uv (the only thing to install)
 
-The plugin starts itself with [uv](https://docs.astral.sh/uv/), which downloads the right Python and every dependency on first use. You do not install Python and you run no `pip`. uv also needs `git` on the PATH to fetch the plugin the first time.
+The plugin starts itself with [uv](https://docs.astral.sh/uv/), which downloads the right Python and every dependency on first use. You do not install Python and you run no `pip`.
 
 Windows PowerShell:
 
@@ -450,16 +450,15 @@ Windows PowerShell:
 
 ```powershell
 uv --version
-git --version
 ```
 
 macOS / Linux:
 
 ```bash
-uv --version && git --version
+uv --version
 ```
 
-If either command cannot be found, install it (uv: see step 2) and restart the agent session. Asking the agent to "use jobfishing-setup" does the check for you.
+If the command cannot be found, install uv (see step 2) and restart the agent session. Asking the agent to "use jobfishing-setup" does the check for you.
 
 ### Codex Cannot Connect to Chrome
 
