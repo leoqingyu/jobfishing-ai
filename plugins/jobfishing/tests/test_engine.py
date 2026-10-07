@@ -30,7 +30,7 @@ def test_no_skills_is_neutral_and_missing_dimension_renormalises():
 
 def test_unknown_labels_never_raise():
     r = scoring.aggregate({"skills": [{"level": "bogus"}], "role_score": "x", "seniority_fit": "??"})
-    assert r["qualification"] == 0 and "role" not in r
+    assert r["qualification"] == 0 and r["role"] == 0 and r["seniority"] == 0   # present but unusable = 0, like the app
 
 
 def test_store_roundtrip_and_url_uniqueness():
@@ -157,3 +157,37 @@ def test_skills_refresh_on_start_only_where_installed(tmp_path, monkeypatch):
     assert (claude / "jobfishing-rank" / "SKILL.md").read_text() != "OLD"
     assert install.sync_installed_skills() == []                       # up to date -> no rewrite
     assert not (tmp_path / ".agents").exists()                         # Codex untouched
+
+
+# ---- saving to jobfishing ----------------------------------------------------------------------------------------------
+
+FULL = {
+    "extraction": {"skills": [{"id": "s1", "label": "SQL", "status": "required"}, {"id": "s2", "label": "Python", "status": "preferred"}],
+                   "role_summary": "Builds pipelines.", "seniority_band": "mid"},
+    "skill_matches": ["s1:full", "s2:weak"], "role_score": 80, "seniority_fit": "match", "domain_fit": "related", "overview": "Good.",
+}
+
+
+def test_full_judgment_form_scores_like_the_simple_one():
+    simple = {"skills": [{"importance": "required", "level": "full"}, {"importance": "preferred", "level": "weak"}],
+              "role_score": 80, "seniority_fit": "match", "domain_fit": "related"}
+    assert scoring.aggregate(FULL) == scoring.aggregate(simple)
+    assert scoring.aggregate({**FULL, "skill_matches": ["s1:full"]})["qualification"] == round((0.9 * 3 + 0 * 1) / 4 * 100, 1)  # s2 ungraded = none
+
+
+def test_save_to_jobfishing_sends_extraction_and_judgment(monkeypatch):
+    pytest.importorskip("mcp")
+    import jobfishing_mcp_server as m
+    store.upsert_jobs([{"site": "indeed", "url": "https://x/1", "title": "DE", "company": "Acme", "location": "Hong Kong",
+                        "description": "d" * 200}, {"site": "indeed", "url": "https://x/2", "title": "No extraction"}])
+    store.save_scores([{"job_id": 1, **FULL}, {"job_id": 2, "skills": [], "role_score": 70, "seniority_fit": "match", "domain_fit": "same"}])
+    sent = []
+    monkeypatch.setattr(m, "_call", lambda method, path, **kw: sent.append((method, path, kw["json"])) or
+                        {"results": [{"job_id": 900 + i, "score": 86.0, "saved": True} for i, _ in enumerate(kw["json"]["items"])]})
+    out = m.save_to_jobfishing([1, 2, 99])["results"]
+    assert out[1]["job_id"] == 900 and "extraction" in out[2]["error"] and out[99]["error"] == "no such local job"
+    [(method, path, body)] = sent
+    assert (method, path) == ("POST", "/api/v1/agent/jobs/import") and body["save"] is True and len(body["items"]) == 1
+    item = body["items"][0]
+    assert item["title"] == "DE" and item["extraction"]["skills"][0]["label"] == "SQL"
+    assert item["judgment"]["skill_matches"] == ["s1:full", "s2:weak"] and "extraction" not in item["judgment"]

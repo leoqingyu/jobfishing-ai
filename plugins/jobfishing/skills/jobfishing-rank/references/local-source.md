@@ -24,7 +24,7 @@ Judging whether two postings are the same job is your job: when the same role an
 Read [judging.md](references/judging.md) first: it is the exact rubric.
 
 1. `list_local_jobs(scored=false, with_description=true, limit=8)` gives a batch. Repeat with `offset` to cut the unscored jobs into batches of about 8.
-2. **Run batches in parallel.** If you can start sub-agents, start up to 6 at once, one per batch; give each the candidate profile, the rubric, and its batch, and ask it to return only the JSON array of judgments. If you cannot, score the batches yourself one after another.
+2. **Run batches in parallel.** If you can start sub-agents, start up to 6 at once, one per batch; give each the candidate profile, the rubric, and its batch, and ask it to return only the JSON array of judgments, in the full form (with `extraction`) when the user is signed in. If you cannot, score the batches yourself one after another.
 3. Collect every returned item and call `save_scores(items)` once per few batches. The engine computes the totals; never compute or invent a total yourself. Check each result: an `error` means a bad job_id, fix and resend.
 
 Ten to forty jobs per run is the sweet spot. Say how many were scored and how many are left.
@@ -32,6 +32,10 @@ Ten to forty jobs per run is the sweet spot. Say how many were scored and how ma
 ## 3. Recommend
 
 Call `recommend(limit=15)`. It ranks local jobs and, if the user is signed in, their jobfishing list on one scale, and says which `source` each came from. Present a short table: score, title, company, location, source, link. For the top three add one line from the overview on why it fits and one on the main gap. Offer next steps: score more, crawl another place, or move a job into tracking.
+
+## 4. Save to jobfishing (signed in)
+
+For a signed-in user, offer to put the jobs they like into their jobfishing account: they appear in the app, in Saved, with the same score, and jobfishing keeps them private to this user. Call `save_to_jobfishing(job_ids)` with the local ids (up to 25 per call is handled for you; 200 a day). This only works for jobs scored in the **full form** (judging.md), which is why a signed-in user's sub-agents must return the `extraction` with every judgment; score it again that way if a job was scored in the simple form. Tell the user which were saved and which were skipped and why.
 
 ## Rules
 

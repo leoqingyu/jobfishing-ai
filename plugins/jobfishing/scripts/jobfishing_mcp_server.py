@@ -897,6 +897,43 @@ def save_scores(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 @mcp.tool()
+def save_to_jobfishing(job_ids: list[int], save: bool = True) -> dict[str, Any]:
+    """Send locally scored jobs to the user's jobfishing account (needs authorization), so they show up in the app, in Saved, with
+    the same score. Only jobs scored with the full judgment form are accepted: it must include the JD `extraction`
+    (see references/judging.md). jobfishing makes no model call; it takes your extraction and judgments as they are, validates
+    them, and keeps the job private to this user. Up to 200 imports a day. `save` false imports without adding to Saved.
+    Re-sending the same job updates it. Returns one result per job id: the jobfishing job_id and score, or why it was skipped."""
+    results: dict[int, Any] = {}
+    batch: list[tuple[int, dict[str, Any]]] = []
+    for jid in dict.fromkeys(int(i) for i in job_ids):
+        job = _store.get_job(jid)
+        if job is None:
+            results[jid] = {"error": "no such local job"}
+            continue
+        try:
+            jd = json.loads(job.get("judgment") or "null")
+        except ValueError:
+            jd = None
+        if not isinstance(jd, dict) or not isinstance(jd.get("extraction"), dict):
+            results[jid] = {"error": "scored without the JD extraction; score it again with the full judgment form (judging.md)"}
+            continue
+        judgment = {k: jd.get(k) for k in ("skill_matches", "role_score", "role_reason", "seniority_fit", "seniority_reason",
+                                           "domain_fit", "domain_reason", "overview") if jd.get(k) is not None}
+        batch.append((jid, {
+            "title": job.get("title"), "company": job.get("company"), "location": job.get("location"),
+            "country": job.get("country"), "url": job.get("url"), "description": job.get("description"),
+            "date_posted": job.get("date_posted"), "extraction": jd["extraction"], "judgment": judgment,
+        }))
+    for i in range(0, len(batch), 25):
+        chunk = batch[i:i + 25]
+        reply = _call("POST", "/api/v1/agent/jobs/import", json={"items": [it for _, it in chunk], "save": save})
+        for (jid, _), res in zip(chunk, reply["results"]):
+            results[jid] = res
+    _invalidate("jobs")
+    return {"results": results}
+
+
+@mcp.tool()
 def open_dashboard(open_browser: bool = True) -> dict[str, Any]:
     """Start the local jobfishing dashboard (a page on this machine only) and return its URL. It shows the crawled jobs,
     their scores and the merged recommendations, and updates by itself as save_scores writes new scores. Offer it after a
