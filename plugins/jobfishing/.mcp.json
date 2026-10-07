@@ -1,8 +1,12 @@
 {
   "mcpServers": {
     "jobfishing": {
-      "command": "jobfishing-mcp",
-      "args": []
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/leoqingyu/jobfishing-ai#subdirectory=plugins/jobfishing",
+        "jobfishing-mcp"
+      ]
     }
   }
 }

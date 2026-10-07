@@ -1,6 +1,6 @@
 ---
 name: jobfishing-rank
-description: Interview the user about job-search preferences, persist the confirmed profile in Experience Agent Q&A, then rank untracked jobfishing jobs and add qualified matches to Saved when requested. Use only when the user explicitly asks to configure ranking preferences, shortlist Job List entries, or populate Saved. Do not apply or generate materials.
+description: Interview the user about job-search preferences, then find and rank jobs from the jobfishing list, from a local crawl of any market (no account needed), or both on one scale. Persist the confirmed profile, score many jobs in parallel, recommend the best, and add qualified jobfishing matches to Saved when requested. Use when the user asks to configure ranking preferences, search or crawl for jobs, score or shortlist jobs against their CV, get recommendations, or populate Saved. Do not apply or generate materials.
 ---
 
 # jobfishing Rank
@@ -11,9 +11,18 @@ This is a separate discovery and curation workflow. jobfishing remains the sourc
 
 Read [preference-interview.md](references/preference-interview.md) before interviewing or ranking.
 
+## Choose the source
+
+Jobs can come from two places, and the same preference profile ranks both:
+
+- **jobfishing list** (the user is signed in): the app already crawled and scored jobs in Switzerland, Luxembourg, Frankfurt, Munich, Stuttgart, Amsterdam and Rotterdam. Read it with `list_jobs`; this is the main flow below.
+- **local crawl** (no account needed): for any other market or a specific search, crawl into a local database, score many jobs at once and recommend. Read [local-source.md](references/local-source.md) and [judging.md](references/judging.md) for this flow; `recommend` then ranks local and jobfishing jobs on one scale.
+
+If the jobs the user wants are in a market jobfishing covers and they are signed in, use the list and skip crawling. If they are not signed in, only the local flow is available; say so plainly and do not ask them to sign in unless they want tracking or the app's own scores.
+
 ## Always confirm preferences first
 
-Read `get_experience_context` before reading the Job List. Use both:
+Signed in: read `get_experience_context` before reading the Job List. Not signed in: read `get_local_preferences` and, after the user approves the final profile, persist it with `save_local_preferences`. Signed in, use both:
 
 - the user's App-managed `scoring_preferences`, when present;
 - the Agent Q&A entry whose exact key is `job_ranking_preferences_v1`.

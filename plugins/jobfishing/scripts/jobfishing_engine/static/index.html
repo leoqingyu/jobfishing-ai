@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>jobfishing dashboard</title>
+<style>
+:root{--page:#f6f5f1;--surface:#fffefb;--subtle:#f8f7f3;--subtle2:#f0eee8;--ink:#0e0e0c;--ink2:#3a3933;--muted:#55524b;--meta:#76736b;--line:#e2dfd7;--line2:#ece9e1;--green:#1e7a4a;--green-bar:#2e9a5e;--tint:#e2f3e8;--tint-line:#cbe8d5;--amber:#8a5a00;--amber-tint:#fbf0d6;--red:#9b2c2c;
+--sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--green)}
+.wrap{max-width:1120px;margin:0 auto;padding:0 clamp(16px,2.4vw,32px) 64px}
+header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:22px 0 14px}
+.brand{font-size:26px;font-weight:600;letter-spacing:-.02em}
+.brand span{margin-right:8px}
+.counts{margin-left:auto;color:var(--muted);font-size:14px}
+.counts b{color:var(--ink);font-weight:600}
+.banner{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;background:var(--amber-tint);border:1px solid #efdca8;border-radius:14px;padding:12px 16px;margin:6px 0 4px;font-size:14px}
+.banner[hidden]{display:none}
+.btn{border:0;border-radius:10px;background:var(--ink);color:var(--surface);padding:9px 15px;font-size:14px;font-weight:500;cursor:pointer}
+.btn:hover{background:#2a2925}
+.btn.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.ghost:hover{background:var(--subtle2)}
+.btn:disabled{opacity:.5;cursor:default}
+nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:14px 0 18px}
+nav.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;margin-bottom:-1px;color:var(--muted);font-weight:500;cursor:pointer}
+nav.tabs button[aria-selected=true]{color:var(--ink);border-color:var(--green)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.bar input,.bar select,.form input,.form select{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.bar input[type=search]{flex:1;min-width:200px}
+.note{color:var(--muted);font-size:14px;margin:0 0 12px}
+.list{display:flex;flex-direction:column;gap:8px}
+.row{display:grid;grid-template-columns:56px 1fr auto;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line2);border-radius:14px;padding:12px 16px;cursor:pointer;text-align:left;width:100%}
+.row:hover{border-color:var(--line);box-shadow:0 8px 20px -14px rgba(30,28,20,.4)}
+.pill{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;font-weight:600;font-size:16px;background:var(--subtle2);color:var(--meta)}
+.pill.hi{background:var(--tint);color:var(--green);border:1px solid var(--tint-line)}
+.pill.mid{background:var(--amber-tint);color:var(--amber)}
+.pill small{display:block;font-size:10px;font-weight:500;line-height:1}
+.title{font-weight:500}
+.sub{color:var(--muted);font-size:13.5px}
+.ov{color:var(--ink2);font-size:13.5px;margin-top:2px}
+.badge{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--muted);background:var(--subtle);white-space:nowrap}
+.badge.jf{background:var(--tint);border-color:var(--tint-line);color:var(--green)}
+.empty{color:var(--meta);padding:36px 0;text-align:center}
+.form{display:grid;gap:14px;max-width:640px}
+.form label{display:grid;gap:5px;font-size:13.5px;color:var(--muted)}
+.form textarea{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-height:72px;resize:vertical}
+.form .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.status{margin-top:14px;font-size:14px;color:var(--ink2)}
+.drawer{position:fixed;inset:0 0 0 auto;width:min(560px,100%);background:var(--surface);border-left:1px solid var(--line);box-shadow:-20px 0 40px -28px rgba(30,28,20,.5);transform:translateX(102%);transition:transform .25s cubic-bezier(.16,1,.3,1);overflow-y:auto;padding:22px;z-index:5}
+.drawer.open{transform:none}
+.drawer h2{margin:0 36px 4px 0;font-size:20px;letter-spacing:-.01em}
+.x{position:absolute;right:14px;top:14px}
+.dims{display:grid;gap:8px;margin:16px 0}
+.dim{display:grid;grid-template-columns:96px 1fr 38px;gap:10px;align-items:center;font-size:13px;color:var(--muted)}
+.track{height:8px;border-radius:99px;background:var(--subtle2);overflow:hidden}
+.fill{height:100%;background:var(--green-bar)}
+.reason{font-size:13px;color:var(--meta);grid-column:2/4;margin-top:-4px}
+.skills{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 16px}
+.sk{font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;background:var(--subtle)}
+.sk.full,.sk.exceeds,.sk.strong{background:var(--tint);border-color:var(--tint-line);color:var(--green)}
+.sk.none,.sk.weak{color:var(--red)}
+pre.desc{white-space:pre-wrap;word-wrap:break-word;font:13.5px/1.55 var(--sans);background:var(--subtle);border:1px solid var(--line2);border-radius:12px;padding:14px;max-height:46vh;overflow:auto}
+.scrim{position:fixed;inset:0;background:rgba(14,14,12,.25);opacity:0;pointer-events:none;transition:opacity .2s;z-index:4}
+.scrim.open{opacity:1;pointer-events:auto}
+@media(max-width:640px){.row{grid-template-columns:48px 1fr}.row .badge{display:none}.form .two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><span aria-hidden="true">🎣</span>jobfishing</div>
+    <div class="counts" id="counts"></div>
+  </header>
+  <div class="banner" id="banner" hidden>
+    <span id="bannerText"></span>
+    <button class="btn" id="copyPrompt" type="button">Copy prompt for your agent</button>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="t-rec" aria-selected="true">Recommended</button>
+    <button role="tab" id="t-all" aria-selected="false">All jobs</button>
+    <button role="tab" id="t-crawl" aria-selected="false">Crawl</button>
+  </nav>
+
+  <section id="p-rec"><p class="note" id="recNote"></p><div class="list" id="recList"></div></section>
+
+  <section id="p-all" hidden>
+    <div class="bar">
+      <input type="search" id="q" placeholder="Search title, company, place" aria-label="Search">
+      <select id="scoredSel" aria-label="Scored"><option value="all">All</option><option value="scored">Scored</option><option value="unscored">Not scored yet</option></select>
+      <select id="minSel" aria-label="Minimum score"><option value="">Any score</option><option value="60">60+</option><option value="70">70+</option><option value="80">80+</option></select>
+      <select id="sortSel" aria-label="Sort"><option value="score">Best score first</option><option value="new">Newest first</option></select>
+    </div>
+    <div class="list" id="allList"></div>
+    <p style="text-align:center"><button class="btn ghost" id="more" hidden>Load more</button></p>
+  </section>
+
+  <section id="p-crawl" hidden>
+    <form class="form" id="crawlForm">
+      <label>Job titles (one per line)<textarea id="terms" placeholder="data engineer&#10;analytics engineer"></textarea></label>
+      <label>Places (one per line)<textarea id="places" placeholder="Hong Kong&#10;London, United Kingdom"></textarea></label>
+      <div class="two">
+        <label>Posted within<select id="hours"><option value="24">24 hours</option><option value="72" selected>3 days</option><option value="168">7 days</option><option value="336">14 days</option></select></label>
+        <label>Indeed country (optional)<input id="country" placeholder="hong kong, united kingdom, usa"></label>
+      </div>
+      <div><button class="btn" id="go" type="submit">Crawl</button></div>
+    </form>
+    <p class="status" id="crawlStatus"></p>
+    <p class="note">A few titles and places per run is plenty; the sites rate-limit an IP that asks for hundreds of searches. Crawled jobs appear in All jobs. To score them, copy the prompt from the banner into your agent.</p>
+  </section>
+</div>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true"><button class="btn ghost x" id="close" type="button">Close</button><div id="dBody"></div></aside>
+
+<script>
+(function(){
+"use strict";
+var $=function(i){return document.getElementById(i)};
+function h(tag,attrs,kids){var e=document.createElement(tag);for(var k in attrs||{}){if(k==="class")e.className=attrs[k];else e.setAttribute(k,attrs[k])}
+  (kids||[]).forEach(function(c){e.appendChild(typeof c==="string"?document.createTextNode(c):c)});return e}
+function api(path,opt){opt=opt||{};opt.headers=Object.assign({"X-Jobfishing":"1"},opt.headers||{});return fetch(path,opt).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||r.status);return j})})}
+function safeUrl(u){return /^https?:\/\//i.test(u||"")?u:null}
+function pill(score){var c=score==null?"":score>=80?" hi":score>=60?" mid":"";
+  return h("div",{class:"pill"+c},score==null?[h("span",{},["—"])]:[h("span",{},[String(Math.round(score))])])}
+function rowFor(j,source){
+  var b=h("button",{class:"row",type:"button"},[pill(j.score),
+    h("div",{},[h("div",{class:"title"},[j.title||"(untitled)"]),h("div",{class:"sub"},[[j.company,j.location].filter(Boolean).join(" · ")]),j.overview?h("div",{class:"ov"},[j.overview]):h("span")]),
+    h("span",{class:"badge"+(source==="jobfishing"?" jf":"")},[source==="jobfishing"?"jobfishing":(j.site||"local")])]);
+  b.addEventListener("click",function(){source==="jobfishing"?openHosted(j):openLocal(j.id)});return b}
+function fill(el,rows,empty){el.textContent="";if(!rows.length)el.appendChild(h("div",{class:"empty"},[empty]));rows.forEach(function(r){el.appendChild(r)})}
+
+var tab="rec",offset=0,last={jobs:-1,scored:-1};
+function show(t){tab=t;["rec","all","crawl"].forEach(function(x){$("p-"+x).hidden=x!==t;$("t-"+x).setAttribute("aria-selected",x===t)});refresh()}
+["rec","all","crawl"].forEach(function(x){$("t-"+x).addEventListener("click",function(){show(x)})});
+
+function counts(){return api("/api/counts").then(function(c){
+  $("counts").textContent="";$("counts").appendChild(h("span",{},[h("b",{},[String(c.jobs)])," jobs · ",h("b",{},[String(c.scored)])," scored"]));
+  $("banner").hidden=c.unscored===0;$("bannerText").textContent=c.unscored+" job"+(c.unscored===1?" isn't":"s aren't")+" scored yet. Your agent scores them against your CV; copy the prompt and paste it in.";
+  return c})}
+function recommend(){return api("/api/recommend?limit=30&min_score=60").then(function(r){
+  $("recNote").textContent=r.note||"";fill($("recList"),r.jobs.map(function(j){return rowFor(j,j.source)}),"Nothing scored 60 or higher yet. Crawl some jobs, then ask your agent to score them.")})}
+function query(append){
+  var p=new URLSearchParams({q:$("q").value,scored:$("scoredSel").value,sort:$("sortSel").value,limit:"50",offset:String(append?offset:0)});
+  if($("minSel").value)p.set("min_score",$("minSel").value);
+  return api("/api/jobs?"+p).then(function(r){
+    var rows=r.jobs.map(function(j){return rowFor(j,"local")});
+    if(!append){offset=0;fill($("allList"),rows,"No jobs yet. Use the Crawl tab, or ask your agent to run crawl_jobs.")}else rows.forEach(function(x){$("allList").appendChild(x)});
+    offset+=r.jobs.length;$("more").hidden=offset>=r.total})}
+function refresh(){counts().then(function(c){last={jobs:c.jobs,scored:c.scored};if(tab==="rec")return recommend();if(tab==="all")return query(false)}).catch(function(){})}
+var qt;["q","scoredSel","minSel","sortSel"].forEach(function(i){$(i).addEventListener("input",function(){clearTimeout(qt);qt=setTimeout(function(){query(false)},180)})});
+$("more").addEventListener("click",function(){query(true)});
+setInterval(function(){if(document.hidden)return;api("/api/counts").then(function(c){if(c.jobs!==last.jobs||c.scored!==last.scored)refresh();else if(c.crawl_running)crawlPoll()}).catch(function(){})},3000);
+
+function openDrawer(nodes){var b=$("dBody");b.textContent="";nodes.forEach(function(n){b.appendChild(n)});$("drawer").classList.add("open");$("scrim").classList.add("open");$("drawer").setAttribute("aria-hidden","false")}
+function closeDrawer(){$("drawer").classList.remove("open");$("scrim").classList.remove("open");$("drawer").setAttribute("aria-hidden","true")}
+$("close").addEventListener("click",closeDrawer);$("scrim").addEventListener("click",closeDrawer);document.addEventListener("keydown",function(e){if(e.key==="Escape")closeDrawer()});
+function link(u){var s=safeUrl(u);return s?h("a",{href:s,target:"_blank",rel:"noopener noreferrer"},["Open the posting"]):h("span")}
+function openHosted(j){openDrawer([h("h2",{},[j.title||""]),h("div",{class:"sub"},[[j.company,j.location].filter(Boolean).join(" · ")]),h("p",{},["Score ",String(Math.round(j.score))," from your jobfishing list. Open it in the jobfishing app for the full match breakdown, tracking and applying."]),link(j.url)])}
+var DIMS=[["qualification","Skills"],["role","Role"],["seniority","Seniority"],["domain","Domain"]];
+function openLocal(id){api("/api/jobs/"+id).then(function(j){
+  var jd=j.judgment||{},n=[h("h2",{},[j.title||""]),h("div",{class:"sub"},[[j.company,j.location,j.salary].filter(Boolean).join(" · ")])];
+  if(j.score!=null){n.push(h("div",{style:"margin-top:12px;display:flex;gap:10px;align-items:center"},[pill(j.score),h("div",{},[h("div",{class:"title"},[j.decision==="generate"?"Strong match":j.decision==="review"?"Worth a look":"Weak match"]),h("div",{class:"sub"},[j.overview||""])])]));
+    var d=h("div",{class:"dims"}),bd=j.breakdown||{};DIMS.forEach(function(x){var num=bd[x[0]];if(num==null)return;
+      d.appendChild(h("div",{class:"dim"},[x[1],h("div",{class:"track"},[h("div",{class:"fill",style:"width:"+Math.max(0,Math.min(100,num))+"%"})]),String(Math.round(num))]));
+      var why=jd[x[0]+"_reason"];if(why)d.appendChild(h("div",{class:"reason"},[why]))});n.push(d);
+    if((jd.skills||[]).length){n.push(h("div",{class:"skills"},jd.skills.map(function(s){return h("span",{class:"sk "+(s.level||"")},[(s.label||"?")+" · "+(s.level||"?")+(s.importance==="preferred"?" (nice to have)":"")])})))}}
+  else n.push(h("p",{class:"note",style:"margin-top:12px"},["Not scored yet. Copy the prompt from the banner into your agent."]));
+  n.push(link(j.url));n.push(h("h3",{style:"margin:16px 0 8px;font-size:14px"},["Description"]));n.push(h("pre",{class:"desc"},[j.description||"(no description)"]));
+  openDrawer(n)}).catch(function(){})}
+
+$("copyPrompt").addEventListener("click",function(){api("/api/prompt").then(function(r){
+  var done=function(){$("copyPrompt").textContent="Copied";setTimeout(function(){$("copyPrompt").textContent="Copy prompt for your agent"},1600)};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(r.prompt).then(done,function(){prompt("Copy this:",r.prompt)});else prompt("Copy this:",r.prompt)})});
+
+function lines(i){return $(i).value.split("\n").map(function(s){return s.trim()}).filter(Boolean)}
+function crawlPoll(){api("/api/crawl").then(function(s){var el=$("crawlStatus");
+  if(s.running){el.textContent="Crawling…";$("go").disabled=true}else{$("go").disabled=false;
+    if(s.result)el.textContent=s.result.error?("Crawl failed: "+s.result.error):("Done: "+s.result.new+" new jobs from "+s.result.searches+" searches"+(s.result.error_count?(", "+s.result.error_count+" searches failed"):"")+".")}}).catch(function(){})}
+$("crawlForm").addEventListener("submit",function(e){e.preventDefault();
+  api("/api/crawl",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({terms:lines("terms"),places:lines("places"),hours_old:+$("hours").value,country:$("country").value.trim()})})
+   .then(function(){$("crawlStatus").textContent="Crawling…";$("go").disabled=true;var t=setInterval(function(){api("/api/crawl").then(function(s){if(!s.running){clearInterval(t);crawlPoll();refresh()}})},1500)})
+   .catch(function(err){$("crawlStatus").textContent=err.message})});
+refresh();crawlPoll();
+})();
+</script>
+</body>
+</html>

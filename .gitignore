@@ -5,3 +5,8 @@ __pycache__/
 # Original Chinese drafts, superseded by docs/*.md (English)
 JobMatchFlow_ClaudeCode_用户全流程.md
 JobMatchFlow_Codex_用户全流程.md
+
+# Build output
+build/
+*.egg-info/
+dist/

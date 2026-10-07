@@ -1,0 +1,8 @@
+interface:
+  display_name: "jobfishing Setup"
+  short_description: "Install and check the jobfishing tools"
+  brand_color: "#2563EB"
+  default_prompt: "Use $jobfishing-setup to get jobfishing working on this machine."
+
+policy:
+  allow_implicit_invocation: true

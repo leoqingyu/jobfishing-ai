@@ -8,7 +8,8 @@ jobfishing stays the single source of truth for your profile, resumes, jobs, sav
 
 | Skill | What it does |
 | --- | --- |
-| `jobfishing-rank` | Interviews you about job-search preferences, saves the confirmed profile, ranks untracked jobs, and shortlists qualified matches into Saved. |
+| `jobfishing-setup` | Gets the tools running: checks for `uv` (which brings its own Python), installs it with your permission, and verifies the connection. |
+| `jobfishing-rank` | Interviews you about job-search preferences, then finds and ranks jobs: from your jobfishing list, from a local crawl of any market (no account needed, many jobs scored at once), or both on one scale. Shortlists qualified jobfishing matches into Saved when you ask. |
 | `jobfishing-apply` | Runs application sessions: setup checks, inbox sync, ATS/email submission, and reconciling outcomes — using jobfishing's MCP data and your visible Chrome. |
 | `jobfishing-apply-fast` | Leaner sibling of `jobfishing-apply` for a quick one-job or small-batch pass: picks one resume for the whole pulse, leans on ATS resume-parse autofill, drafts and self-reviews the cover letter inline instead of dispatching a reviewer, and still stops before the final submit. |
 | `jobfishing-tailor` | Produces a truthful, tailored CV and cover letter for one job, with multi-stage review, local LaTeX rendering, verification, and upload back to jobfishing. |
@@ -41,7 +42,7 @@ This repo is both a [Claude Code plugin marketplace](https://code.claude.com/doc
 
 Point Codex at `plugins/jobfishing` per its plugin-source instructions; the manifest lives at `plugins/jobfishing/.codex-plugin/plugin.json`.
 
-Both hosts share one local MCP bridge (`plugins/jobfishing/scripts/jobfishing_mcp_server.py`, Python 3.10+) and one LaTeX environment for tailored materials, so `jobfishing-materials-setup` only needs to run once per machine.
+The plugin starts its local MCP server through [`uv`](https://docs.astral.sh/uv/), which fetches its own Python and dependencies on first use: no Python install, no `pip`. You need `uv` and `git`; if `uv` is missing, ask your agent to use `jobfishing-setup` and it will install it with your permission. Finding and ranking jobs needs no jobfishing account. Both hosts share one local MCP server and one LaTeX environment for tailored materials, so `jobfishing-materials-setup` only needs to run once per machine.
 
 ## Contributing
 

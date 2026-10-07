@@ -4,18 +4,26 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jobfishing-agent"
-version = "0.6.0"
-description = "Local MCP bridge for jobfishing application sessions"
+version = "0.7.0"
+description = "jobfishing MCP: application sessions plus local job discovery (crawl, score, recommend)"
 requires-python = ">=3.10"
 dependencies = [
   "mcp>=2.1,<3",
   "python-docx>=1.1,<2",
   "requests>=2.32,<3",
+  "python-jobspy>=1.1.82,<2",
 ]
 
 [project.scripts]
 jobfishing-mcp = "jobfishing_mcp_server:main"
+jobfishing-ui = "jobfishing_engine.web:main"
+jobfishing = "jobfishing_engine.install:main"
 
 [tool.setuptools]
 py-modules = ["jobfishing_mcp_server"]
-package-dir = {"" = "scripts"}
+packages = ["jobfishing_engine", "jobfishing_skills"]
+package-dir = {"" = "scripts", "jobfishing_skills" = "skills"}
+
+[tool.setuptools.package-data]
+jobfishing_engine = ["static/*"]
+jobfishing_skills = ["**/*"]

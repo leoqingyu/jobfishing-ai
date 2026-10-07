@@ -336,6 +336,8 @@ def _status_is_no_op(current: str, requested: str) -> bool:
     return False
 
 
+from jobfishing_engine import crawl as _crawl, rank as _rank, store as _store, web as _web  # noqa: E402  local discovery engine
+
 mcp = MCPServer(
     name="jobfishing",
     instructions=(
@@ -349,7 +351,10 @@ mcp = MCPServer(
         "and notes at mark time. Use application snapshot tools for later interview preparation. Do not "
         "treat an already-recorded application or later status as an error. Mail checkpoints are local read "
         "anchors only. When advancing a status, add relevant feedback without deleting existing notes. Do not "
-        "install or create alternative jobfishing clients. Never store ATS passwords in notes."
+        "install or create alternative jobfishing clients. Never store ATS passwords in notes. Job discovery "
+        "outside the jobfishing library works without any account: crawl_jobs fetches into a local SQLite, "
+        "list_local_jobs/get_local_job read it, save_scores stores the judgments the agent made, recommend "
+        "ranks local and (when authorized) jobfishing jobs on one scale. Tracking and applying stay in the app."
     ),
 )
 
@@ -831,6 +836,103 @@ def save_agent_answer(key: str, value: str) -> dict[str, Any]:
     )
     _invalidate("context")
     return result
+
+
+# ---- Local discovery: crawl, store, score, recommend. Works without an account. -------------------------------------
+
+@mcp.tool()
+def crawl_jobs(
+    terms: list[str],
+    places: list[str],
+    sites: list[str] | None = None,
+    hours_old: int = 72,
+    per_search: int = 30,
+    country: str | None = None,
+) -> dict[str, Any]:
+    """Fetch jobs into the local database, in parallel and without any account. Use it for markets the jobfishing
+    library does not cover (Hong Kong, UK, US ...), or to look for something specific.
+
+    Every term is searched in every place on every site at once, about 3 s for a handful of searches. `terms` are job
+    titles like "data engineer"; `places` are "Zurich, Switzerland" style strings (about a 35 km radius is searched);
+    `sites` defaults to linkedin and indeed; `hours_old` is the posting window; `country` is Indeed's country name
+    ("switzerland", "hong kong", "united kingdom", "usa"). Duplicates across searches are dropped only by link; judging
+    whether two postings are the same job is the agent's call. Returns counts and any per-search errors.
+    Be gentle: a few terms and places per call, no loops of hundreds, or the sites will rate-limit this IP."""
+    return _crawl.crawl(
+        [t for t in terms if t.strip()], [p for p in places if p.strip()],
+        sites=tuple(sites or _crawl.SITES), hours_old=hours_old, per_search=max(1, min(per_search, 100)), country=country,
+    )
+
+
+@mcp.tool()
+def list_local_jobs(
+    scored: bool | None = None, limit: int = 50, offset: int = 0, with_description: bool = False,
+) -> dict[str, Any]:
+    """Page through the locally crawled jobs, newest first. `scored` true/false filters to scored/unscored; leave it out
+    for all. `with_description` adds the full posting text (needed to score; keep `limit` small then)."""
+    limit = max(1, min(int(limit), 200))
+    return {"counts": _store.counts(), "jobs": _store.list_jobs(
+        scored=scored, limit=limit, offset=max(0, int(offset)), with_description=with_description)}
+
+
+@mcp.tool()
+def get_local_job(job_id: int) -> dict[str, Any]:
+    """One locally crawled job with its full description and, if scored, its score and judgment."""
+    job = _store.get_job(int(job_id))
+    if job is None:
+        raise ValueError(f"No local job {job_id}")
+    return job
+
+
+@mcp.tool()
+def save_scores(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Store the agent's judgments for several local jobs at once; returns each job's computed 0-100 score.
+
+    Each item: {job_id, skills:[{label, importance: required|preferred, level: exceeds|full|strong|partial|weak|none}],
+    role_score: 0-100 integer, seniority_fit: match|one_up|one_down|over|under, domain_fit: same|related|transferable|
+    unrelated, overview: one sentence, optional role_reason/seniority_reason/domain_reason}. Judge only; do NOT compute a
+    total, the engine does it with the same formula as the jobfishing app, so local and jobfishing scores compare directly.
+    See the jobfishing-rank skill (references/judging.md) for how to judge and how to run many jobs in parallel."""
+    return _store.save_scores(items)
+
+
+@mcp.tool()
+def open_dashboard(open_browser: bool = True) -> dict[str, Any]:
+    """Start the local jobfishing dashboard (a page on this machine only) and return its URL. It shows the crawled jobs,
+    their scores and the merged recommendations, and updates by itself as save_scores writes new scores. Offer it after a
+    crawl or a scoring run; tell the user the link."""
+    def hosted() -> list[dict[str, Any]]:
+        return cached_jobs if cached_jobs is not None else _call("GET", "/api/v1/agent/jobs")["jobs"]
+    return {"url": _web.serve(hosted, open_browser=open_browser)}
+
+
+@mcp.tool()
+def get_local_preferences() -> dict[str, Any]:
+    """The confirmed ranking-preferences profile saved on this machine (used when the user is not signed in; signed-in
+    users keep it in jobfishing as Agent Q&A `job_ranking_preferences_v1`). `profile` is null when none is saved."""
+    return {"profile": _store.get_preferences()}
+
+
+@mcp.tool()
+def save_local_preferences(profile: str) -> dict[str, Any]:
+    """Save the user-approved ranking-preferences profile on this machine, replacing the previous one."""
+    _store.save_preferences(profile)
+    return {"saved": True}
+
+
+@mcp.tool()
+def recommend(limit: int = 30, min_score: float = 60, include_jobfishing: bool = True) -> dict[str, Any]:
+    """The best jobs on one list: locally scored jobs plus, when this machine is authorized, the jobfishing app's own
+    scored list. Each row says `source` ("local" or "jobfishing"). Discarded jobs are left out."""
+    hosted: list[dict[str, Any]] = []
+    note = None
+    if include_jobfishing:
+        try:
+            hosted = cached_jobs if cached_jobs is not None else _call("GET", "/api/v1/agent/jobs")["jobs"]
+        except Exception as e:  # not authorized or offline: local-only is a valid answer
+            note = f"jobfishing list not included ({type(e).__name__}); authorize to merge it"
+    local = _store.list_jobs(scored=True, limit=1000)
+    return {"jobs": _rank.merge_rank(local, hosted, limit=max(1, min(int(limit), 200)), min_score=min_score), "note": note}
 
 
 def main() -> None:

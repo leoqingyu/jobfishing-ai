@@ -1,14 +1,14 @@
 interface:
   display_name: "jobfishing Job Ranking"
-  short_description: "Interview preferences, rank jobs, curate Saved"
+  short_description: "Find, score and rank jobs; crawl any market"
   brand_color: "#2563EB"
-  default_prompt: "Use $jobfishing-rank to confirm or update my saved preferences, then rank my Job List and add qualified matches to Saved."
+  default_prompt: "Use $jobfishing-rank to confirm my preferences, then find and rank jobs for me, crawling the places I name if needed."
 
 dependencies:
   tools:
     - type: "mcp"
       value: "jobfishing"
-      description: "jobfishing Experience, Job List, full JD, match evidence, scores, and Saved actions"
+      description: "jobfishing Experience, Job List, scores, Saved actions, and the local crawl, score and recommend tools"
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

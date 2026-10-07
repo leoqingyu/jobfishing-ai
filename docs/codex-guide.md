@@ -64,37 +64,25 @@ Do not delete or move this folder after installation is complete.
 
 Do not use this plugin directory as your day-to-day Codex Project for submitting applications. The plugin directory is only for storing and installing the runtime program.
 
-### 2. Install the Local Runtime Package
+### 2. Install uv (the only thing to install)
 
-Open a terminal in the unzipped directory.
+The plugin starts itself with [uv](https://docs.astral.sh/uv/), which downloads the right Python and every dependency on first use. You do not install Python and you run no `pip`. uv also needs `git` on the PATH to fetch the plugin the first time.
 
 Windows PowerShell:
 
 ```powershell
-python -m pip install ".\plugins\jobfishing"
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+uv --version
 ```
 
-macOS Terminal:
+macOS / Linux Terminal:
 
 ```bash
-python3 -m pip install "./plugins/jobfishing"
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv --version
 ```
 
-On Windows you can confirm the installation with:
-
-```powershell
-Get-Command jobfishing-mcp
-```
-
-On macOS you can use:
-
-```bash
-command -v jobfishing-mcp
-```
-
-Linux Terminal uses the same `python3` and `command -v` commands as macOS.
-
-As long as the install location of `jobfishing-mcp` is shown, the local runtime package is ready.
+Open a new terminal afterwards. As long as `uv --version` prints a version, you are ready. The first start of jobfishing takes about 10 seconds; after that it is instant. If you skip this step, the `jobfishing-setup` skill will offer to do it for you.
 
 ### 3. Install the Codex Plugin
 
@@ -461,16 +449,17 @@ Check:
 Windows PowerShell:
 
 ```powershell
-Get-Command jobfishing-mcp
+uv --version
+git --version
 ```
 
-macOS:
+macOS / Linux:
 
 ```bash
-command -v jobfishing-mcp
+uv --version && git --version
 ```
 
-If the command cannot be found, go back to the unzipped directory and reinstall the local runtime package.
+If either command cannot be found, install it (uv: see step 2) and restart the agent session. Asking the agent to "use jobfishing-setup" does the check for you.
 
 ### Codex Cannot Connect to Chrome
 
