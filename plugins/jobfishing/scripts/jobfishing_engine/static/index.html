@@ -54,11 +54,11 @@ nav.tabs button[aria-selected=true]{color:var(--ink);border-color:var(--green)}
 .drawer.open{transform:none}
 .drawer h2{margin:0 36px 4px 0;font-size:20px;letter-spacing:-.01em}
 .x{position:absolute;right:14px;top:14px}
-.dims{display:grid;gap:8px;margin:16px 0}
+.dims{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin:16px 0}
 .dim{display:grid;grid-template-columns:96px 1fr 38px;gap:10px;align-items:center;font-size:13px;color:var(--muted)}
 .track{height:8px;border-radius:99px;background:var(--subtle2);overflow:hidden}
 .fill{height:100%;background:var(--green-bar)}
-.reason{font-size:13px;color:var(--meta);grid-column:2/4;margin-top:-4px}
+.reason{font-size:13px;color:var(--meta);padding-left:106px;margin-top:-4px}
 .skills{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 16px}
 .sk{font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;background:var(--subtle)}
 .sk.full,.sk.exceeds,.sk.strong{background:var(--tint);border-color:var(--tint-line);color:var(--green)}
@@ -251,7 +251,7 @@ $("clearBtn").addEventListener("click",function(){
     if(c.scored)extra.push(c.scored+" scored");if(c.ready)extra.push(c.ready+" waiting to be scored");if(c.no_description)extra.push(c.no_description+" with only a title");
     openModal("Clear all jobs?",[
       h("p",{},["All "+n+" local job"+(n===1?"":"s")+" on this dashboard will be cleared for good"+(extra.length?" ("+extra.join(", ")+")":"")+". Please make sure you have finished with them: saved the ones you want, applied, or noted what you need."]),
-      h("p",{},["They stay in the database file on your computer but will not show up here again, and crawling the same posting again will not bring them back."+(hosted>0?" The "+hosted+" job"+(hosted===1?"":"s")+" from jobfishing stay in your jobfishing account.":"")])],
+      h("p",{},["They stay in the database file on your computer but will not show up here again, and crawling the same posting again will not bring them back."+(hosted>0?" The "+hosted+" job"+(hosted===1?"":"s")+" from jobfishing "+(hosted===1?"stays":"stay")+" in your jobfishing account.":"")])],
      [{label:"Cancel",cls:"ghost",onClick:closeModal},
       {label:"Clear all "+n+" job"+(n===1?"":"s"),cls:"danger",onClick:function(){
         api("/api/clear",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({all:true})}).then(function(){closeModal();sel={};refresh()}).catch(function(err){closeModal();alert(err.message)})}}])})});
