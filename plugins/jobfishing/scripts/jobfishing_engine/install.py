@@ -1,7 +1,7 @@
 """`jobfishing install`: register the MCP server and copy the skills into the agents found on this machine.
 
 Claude Code: `claude mcp add --scope user` plus ~/.claude/skills. Codex: a [mcp_servers.jobfishing] table in
-~/.codex/config.toml plus ~/.codex/skills. Idempotent, and `jobfishing uninstall` reverses it.
+~/.codex/config.toml plus the user skills folder ~/.agents/skills (Codex's documented location). Idempotent, and `jobfishing uninstall` reverses it.
 """
 
 from __future__ import annotations
@@ -83,6 +83,12 @@ def _codex_home() -> Path:
     return Path(os.environ.get("CODEX_HOME") or Path.home() / ".codex")
 
 
+def _codex_skills_dir() -> Path:
+    """Codex reads user skills from ~/.agents/skills. Earlier versions of this installer wrote ~/.codex/skills, which Codex
+    does not read; install and uninstall both clean that legacy copy up."""
+    return Path.home() / ".agents" / "skills"
+
+
 def _toml_str(s: str) -> str:
     return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
@@ -115,8 +121,9 @@ def install_codex() -> str:
     cfg = home / "config.toml"
     text = _strip_table(cfg.read_text(encoding="utf-8")).rstrip() if cfg.exists() else ""
     cfg.write_text((text + "\n\n" if text else "") + _codex_block(), encoding="utf-8")
-    skills = _copy_skills(home / "skills")
-    return f"Codex: MCP server written to {cfg}, {len(skills)} skills copied to {home / 'skills'}"
+    _remove_skills(home / "skills")  # legacy location, never read by Codex
+    skills = _copy_skills(_codex_skills_dir())
+    return f"Codex: MCP server written to {cfg}, {len(skills)} skills copied to {_codex_skills_dir()}"
 
 
 def uninstall_codex() -> str:
@@ -126,7 +133,8 @@ def uninstall_codex() -> str:
         return ""
     if cfg.exists():
         cfg.write_text(_strip_table(cfg.read_text(encoding="utf-8")).rstrip() + "\n", encoding="utf-8")
-    return f"Codex: MCP server removed, {_remove_skills(home / 'skills')} skills removed"
+    n = _remove_skills(_codex_skills_dir()) + _remove_skills(home / "skills")
+    return f"Codex: MCP server removed, {n} skills removed"
 
 
 # ---- CLI -------------------------------------------------------------------------------------------------------------

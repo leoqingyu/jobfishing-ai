@@ -123,7 +123,10 @@ def test_dashboard_refuses_foreign_hosts_and_unmarked_posts(dash):
 def test_codex_config_is_idempotent_and_keeps_other_tables(tmp_path, monkeypatch):
     from jobfishing_engine import install
     monkeypatch.setenv("CODEX_HOME", str(tmp_path / "cx"))
-    (tmp_path / "cx").mkdir()
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path / "home"))
+    legacy = tmp_path / "cx" / "skills" / "jobfishing-rank"
+    legacy.mkdir(parents=True)  # what the first installer wrote
     cfg = tmp_path / "cx" / "config.toml"
     cfg.write_text('model = "x"\n\n[mcp_servers.other]\ncommand = "o"\n')
     monkeypatch.setattr(install, "_skills_src", lambda: Path(__file__).resolve().parents[1] / "skills")
@@ -132,8 +135,9 @@ def test_codex_config_is_idempotent_and_keeps_other_tables(tmp_path, monkeypatch
     install.install_codex()
     assert cfg.read_text() == first and first.count("[mcp_servers.jobfishing]") == 1
     assert 'model = "x"' in first and "[mcp_servers.other]" in first
-    assert (tmp_path / "cx" / "skills" / "jobfishing-rank" / "SKILL.md").exists()
+    assert (tmp_path / "home" / ".agents" / "skills" / "jobfishing-rank" / "SKILL.md").exists()
+    assert not legacy.exists()  # the old, unread copy is cleaned up
     install.uninstall_codex()
     left = cfg.read_text()
     assert "jobfishing" not in left and "[mcp_servers.other]" in left
-    assert not (tmp_path / "cx" / "skills" / "jobfishing-rank").exists()
+    assert not (tmp_path / "home" / ".agents" / "skills" / "jobfishing-rank").exists()
