@@ -26,7 +26,7 @@ Draft the letter and self-review it against that same checklist (factual accurac
 
 ## Render and hand off
 
-1. Render the final reviewed paragraphs locally to a clean DOCX and verify its visible and extracted text match. Do not use the jobfishing frontend or its renderer.
+1. Render the final reviewed paragraphs locally to a clean DOCX and verify its visible and extracted text match. Write a small script and run it with `uv run --no-project --with python-docx script.py` (the user may have no Python or `python-docx` installed; `uv` fetches both). Do not use the jobfishing frontend or its renderer.
 2. Name the file `<Candidate Name> - Cover Letter - <Company>.docx` (see [outbound-filenames.md](../jobfishing-apply/references/outbound-filenames.md) for the same clean-filename standard used elsewhere).
 3. Tell the user where the local file is and show the letter content.
 4. Only if the user asks to save it to jobfishing, and only when this is a real jobfishing job: call `upload_tailored_cover_letter` so it becomes that job's current Cover Letter. Do not call this for a job that only exists as a pasted JD.

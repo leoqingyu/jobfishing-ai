@@ -14,7 +14,7 @@ This Skill always produces a pair: one tailored CV and one tailored Cover Letter
 First run the quick doctor from `$jobfishing-materials-setup`:
 
 ```text
-python ../jobfishing-materials-setup/scripts/materials_doctor.py
+uv run --no-project ../jobfishing-materials-setup/scripts/materials_doctor.py
 ```
 
 Resolve the path from this skill directory. If `ready=true`, retain the absolute `engines.lualatex.path` and `engines.xelatex.path` returned by doctor and use those exact executables for this run. Do not assume the current host's shell `PATH` matches the host that configured LaTeX. If doctor is not ready, use `$jobfishing-materials-setup` to verify or repair the shared system environment. Obtain approval before any system installation, then resume this same tailoring request after doctor passes.

@@ -12,15 +12,17 @@ Configure the LaTeX toolchain once per OS user account, shared by Codex and Clau
 Run:
 
 ```text
-python scripts/materials_doctor.py
+uv run --no-project scripts/materials_doctor.py
 ```
+
+`uv` is already on the machine (jobfishing starts through it) and brings its own Python, so use `uv run --no-project` for every Python script in these skills instead of `python`; the user may have no Python installed.
 
 Resolve the script path from this skill directory. If it returns `ready=true`, stop; do not reinstall or run a full smoke test. Retain `engines.lualatex.path` and `engines.xelatex.path` from the JSON for later compilation; they may come from shared state even when the current host's `PATH` differs.
 
 If both engines exist but the state is unverified or the template fingerprint changed, run:
 
 ```text
-python scripts/materials_doctor.py --smoke --write-state
+uv run --no-project scripts/materials_doctor.py --smoke --write-state
 ```
 
 This is a verification/migration, not a system installation.

@@ -38,7 +38,7 @@ After a successful `--smoke --write-state`, the absolute paths in `engines.*.pat
 For a custom existing installation, keep the canonical state location and register the engines once:
 
 ```text
-python materials_doctor.py --smoke --write-state --lualatex <absolute-lualatex> --xelatex <absolute-xelatex>
+uv run --no-project materials_doctor.py --smoke --write-state --lualatex <absolute-lualatex> --xelatex <absolute-xelatex>
 ```
 
 Changing `--state-dir` is reserved for testing or an explicitly managed deployment. It is not the normal user customization path because another host would no longer find the state automatically.
