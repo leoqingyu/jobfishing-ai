@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "jobfishing",
+  "displayName": "jobfishing",
+  "version": "0.6.0",
+  "description": "Rank, prepare, submit, analyze, and interview for jobs with jobfishing and Claude in Chrome.",
+  "author": {
+    "name": "jobfishing"
+  },
+  "homepage": "https://app.jobfish.ing",
+  "license": "MIT",
+  "keywords": [
+    "jobs",
+    "applications",
+    "chrome",
+    "ats",
+    "career"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}

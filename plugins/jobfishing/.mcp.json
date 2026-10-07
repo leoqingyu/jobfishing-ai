@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "jobfishing": {
+      "command": "jobfishing-mcp",
+      "args": []
+    }
+  }
+}

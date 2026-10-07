@@ -1,0 +1,14 @@
+interface:
+  display_name: "jobfishing Insights"
+  short_description: "Analyze application outcomes and funnel patterns"
+  brand_color: "#2563EB"
+  default_prompt: "Use $jobfishing-insights to analyze my existing jobfishing application funnel and propose evidence-based targeting experiments."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "jobfishing"
+      description: "jobfishing jobs, tracking, scores, stages, and available feedback"
+
+policy:
+  allow_implicit_invocation: false

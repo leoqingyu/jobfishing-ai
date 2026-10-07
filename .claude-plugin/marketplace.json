@@ -1,14 +1,14 @@
 {
-  "name": "jobmatchflow",
+  "name": "jobfishing",
   "owner": {
-    "name": "JobMatchFlow"
+    "name": "jobfishing"
   },
-  "description": "JobMatchFlow job ranking, application, resume tailoring, outcome analysis, and interview tools for Claude Code.",
+  "description": "jobfishing job ranking, application, resume tailoring, outcome analysis, and interview tools for Claude Code.",
   "plugins": [
     {
-      "name": "jobmatchflow",
-      "source": "./plugins/jobmatchflow",
-      "description": "Rank, prepare, submit, tailor, analyze, and interview with JobMatchFlow and visible Chrome."
+      "name": "jobfishing",
+      "source": "./plugins/jobfishing",
+      "description": "Rank, prepare, submit, tailor, analyze, and interview with jobfishing and visible Chrome."
     }
   ]
 }

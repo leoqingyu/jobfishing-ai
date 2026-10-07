@@ -1,0 +1,14 @@
+interface:
+  display_name: "jobfishing Tailor"
+  short_description: "Create and verify two tailored LaTeX PDFs"
+  brand_color: "#2563EB"
+  default_prompt: "Use $jobfishing-tailor to create, review, locally render, verify, and upload a tailored CV and Cover Letter for one jobfishing job."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "jobfishing"
+      description: "jobfishing facts, jobs, saved Cover Letter content, and final material uploads"
+
+policy:
+  allow_implicit_invocation: false

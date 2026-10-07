@@ -1,21 +1,21 @@
-# JobMatchFlow × Claude Code — Full User Workflow
+# jobfishing × Claude Code — Full User Workflow
 
-This document guides users through the first-time connection of JobMatchFlow, Claude Code, and Claude in Chrome, and describes how to use them afterward following the pattern of "open once, submit a batch, end the task."
+This document guides users through the first-time connection of jobfishing, Claude Code, and Claude in Chrome, and describes how to use them afterward following the pattern of "open once, submit a batch, end the task."
 
-JobMatchFlow is the source of truth for candidate profile, resume, jobs, Q&A, and application status. Claude Code is responsible for reading this data, operating Gmail, Outlook Web, and job-board sites through the Chrome already logged in on the user's own machine, and writing the results back to JobMatchFlow once applications are complete.
+jobfishing is the source of truth for candidate profile, resume, jobs, Q&A, and application status. Claude Code is responsible for reading this data, operating Gmail, Outlook Web, and job-board sites through the Chrome already logged in on the user's own machine, and writing the results back to jobfishing once applications are complete.
 
 ## 1. What to Prepare Before Starting
 
 The user needs to prepare:
 
-- A JobMatchFlow account;
+- A jobfishing account;
 - Claude Code, logged in with a direct Anthropic account via `/login`;
 - A Pro, Max, Team, or Enterprise plan that supports the Claude Code Chrome integration;
 - Google Chrome;
 - The Claude in Chrome extension;
 - A job-search email account already logged into the same Chrome Profile;
 - Python 3.10 or higher;
-- The `jobmatchflow-distribution-0.5.1-complete-v7.zip` dual-compatibility distribution package.
+- The `jobfishing-distribution-0.5.1-complete-v7.zip` dual-compatibility distribution package.
 
 Claude in Chrome requires a direct Anthropic login. Claude Code sessions that only use an API Key, Amazon Bedrock, Google Cloud, or Microsoft Foundry cannot use this Chrome integration.
 
@@ -23,9 +23,9 @@ Windows users should run native Claude Code; the Claude Code Chrome integration 
 
 Official Claude Code documentation: <https://code.claude.com/docs/en/chrome>
 
-## 2. Complete JobMatchFlow Setup First
+## 2. Complete jobfishing Setup First
 
-Before letting Claude Code start working, log in to JobMatchFlow and complete:
+Before letting Claude Code start working, log in to jobfishing and complete:
 
 1. Fill in Basic Info;
 2. Fill in Experience;
@@ -43,7 +43,7 @@ If information in a resume is inconsistent with Basic Info, Claude Code should r
 
 Job filtering is a separate feature and will not automatically start submitting applications. For first-time use, send:
 
-> /jobmatchflow:jobmatchflow-rank First read my existing filtering preferences from Experience; if the information is insufficient, ask me multiple rounds of questions to understand my target direction, hard requirements, work preferences, and trade-off rules. Save the final confirmed preferences to Experience Agent Q&A, then review the Job List and add jobs that match my preferences to Saved. Do not start submitting applications.
+> /jobfishing:jobfishing-rank First read my existing filtering preferences from Experience; if the information is insufficient, ask me multiple rounds of questions to understand my target direction, hard requirements, work preferences, and trade-off rules. Save the final confirmed preferences to Experience Agent Q&A, then review the Job List and add jobs that match my preferences to Saved. Do not start submitting applications.
 
 Claude Code will save the confirmed long-term preferences as `job_ranking_preferences_v1` in Experience Agent Q&A. This entry can be edited from the App front end.
 
@@ -51,9 +51,9 @@ Every time this Skill is invoked afterward, Claude Code will first show a summar
 
 If you only want to view the ranking without modifying Saved, explicitly send:
 
-> /jobmatchflow:jobmatchflow-rank Only review and show the recommended results; do not modify the Job List.
+> /jobfishing:jobfishing-rank Only review and show the recommended results; do not modify the Job List.
 
-## 3. First-Time Installation of the JobMatchFlow Plugin
+## 3. First-Time Installation of the jobfishing Plugin
 
 This section only needs to be done once.
 
@@ -61,9 +61,9 @@ This section only needs to be done once.
 
 Unzip the package to a fixed location, for example:
 
-- Windows: `%USERPROFILE%\Documents\JobMatchFlowAgent`
-- macOS: `$HOME/Documents/JobMatchFlowAgent`
-- Linux: `$HOME/JobMatchFlowAgent`
+- Windows: `%USERPROFILE%\Documents\JobfishingAgent`
+- macOS: `$HOME/Documents/JobfishingAgent`
+- Linux: `$HOME/JobfishingAgent`
 
 Do not delete or move this folder after installation is complete.
 
@@ -76,20 +76,20 @@ Open a terminal in the unzipped directory.
 Windows PowerShell:
 
 ```powershell
-python -m pip install ".\plugins\jobmatchflow"
-Get-Command jobmatchflow-mcp
+python -m pip install ".\plugins\jobfishing"
+Get-Command jobfishing-mcp
 ```
 
 macOS Terminal:
 
 ```bash
-python3 -m pip install "./plugins/jobmatchflow"
-command -v jobmatchflow-mcp
+python3 -m pip install "./plugins/jobfishing"
+command -v jobfishing-mcp
 ```
 
 Linux Terminal uses the same `python3` and `command -v` commands as macOS.
 
-As long as the second command shows the install location of `jobmatchflow-mcp`, the local runtime package is ready.
+As long as the second command shows the install location of `jobfishing-mcp`, the local runtime package is ready.
 
 ### 3. Install the Claude Code Plugin
 
@@ -103,7 +103,7 @@ In Claude Code, run:
 
 ```text
 /plugin marketplace add <absolute path to the unzipped directory>
-/plugin install jobmatchflow@jobmatchflow
+/plugin install jobfishing@jobfishing
 ```
 
 If the installation result indicates a reload is needed, run:
@@ -120,9 +120,9 @@ Use the following command to check:
 
 Confirm:
 
-- `jobmatchflow` appears under Installed;
+- `jobfishing` appears under Installed;
 - The plugin is in an enabled state;
-- There are no JobMatchFlow errors under Errors;
+- There are no jobfishing errors under Errors;
 - The component list includes a Skill and an MCP server.
 
 Official Claude Code plugin installation instructions: <https://code.claude.com/docs/en/discover-plugins>
@@ -205,13 +205,13 @@ This directory is now Claude Code's current application-submission Project.
 
 In the Project, send:
 
-> /jobmatchflow:jobmatchflow-apply Run a full configuration check. Do not send any emails, upload files, or submit applications for now.
+> /jobfishing:jobfishing-apply Run a full configuration check. Do not send any emails, upload files, or submit applications for now.
 
 Claude Code should execute, in order:
 
-1. Check whether the JobMatchFlow MCP tools are available;
-2. If not yet authorized, generate a JobMatchFlow verification link and verification code;
-3. Ask the user to open the link, log in to JobMatchFlow, and approve the authorization;
+1. Check whether the jobfishing MCP tools are available;
+2. If not yet authorized, generate a jobfishing verification link and verification code;
+3. Ask the user to open the link, log in to jobfishing, and approve the authorization;
 4. Complete the long-term authorization;
 5. Ask the user to confirm that Basic Info, Experience, and resumes have already been updated;
 6. Once the user confirms, refresh the local cache once for this round;
@@ -224,8 +224,8 @@ Claude Code should execute, in order:
 The expected result looks similar to:
 
 ```text
-JobMatchFlow connection: ready
-JobMatchFlow authorization: ready
+jobfishing connection: ready
+jobfishing authorization: ready
 Candidate profile: ready
 Saved jobs: ready (N)
 Resume library: ready (N)
@@ -236,23 +236,23 @@ Job-search inbox: ready
 File download: ready
 ```
 
-If Claude Code recognizes `/jobmatchflow:jobmatchflow-apply` and starts the process above, it means the plugin, Skill, and MCP have all loaded successfully.
+If Claude Code recognizes `/jobfishing:jobfishing-apply` and starts the process above, it means the plugin, Skill, and MCP have all loaded successfully.
 
 ## 7. Optional: One-Time Setup of a Shared LaTeX Environment
 
 LaTeX is only needed when the user explicitly requests generation of a tailored CV or a tailored Cover Letter. Standard applications and the DOCX Cover Letter do not require LaTeX to be installed.
 
-The LaTeX environment is a "system-user-level configuration for the current computer" — it does not belong to any single Claude Code Project or any single conversation. JobMatchFlow always uses the following locations:
+The LaTeX environment is a "system-user-level configuration for the current computer" — it does not belong to any single Claude Code Project or any single conversation. jobfishing always uses the following locations:
 
 | System | Shared State File | Shared Template Directory | Default LaTeX Install Root |
 | --- | --- | --- | --- |
-| Windows | `%USERPROFILE%\.jobmatchflow\materials\environment.json` | `%USERPROFILE%\.jobmatchflow\materials\templates` | `%LOCALAPPDATA%\Programs\MiKTeX` |
-| macOS | `$HOME/.jobmatchflow/materials/environment.json` | `$HOME/.jobmatchflow/materials/templates` | `$HOME/Library/TinyTeX` |
-| Linux | `$HOME/.jobmatchflow/materials/environment.json` | `$HOME/.jobmatchflow/materials/templates` | `$HOME/.TinyTeX` |
+| Windows | `%USERPROFILE%\.jobfishing\materials\environment.json` | `%USERPROFILE%\.jobfishing\materials\templates` | `%LOCALAPPDATA%\Programs\MiKTeX` |
+| macOS | `$HOME/.jobfishing/materials/environment.json` | `$HOME/.jobfishing/materials/templates` | `$HOME/Library/TinyTeX` |
+| Linux | `$HOME/.jobfishing/materials/environment.json` | `$HOME/.jobfishing/materials/templates` | `$HOME/.TinyTeX` |
 
 The first time you need tailored materials, send this in Claude Code:
 
-> /jobmatchflow:jobmatchflow-materials-setup Check and configure the shared LaTeX environment on this computer. Only check for now; if installation is needed, first tell me the install location, size, and command, and wait for my approval.
+> /jobfishing:jobfishing-materials-setup Check and configure the shared LaTeX environment on this computer. Only check for now; if installation is needed, first tell me the install location, size, and command, and wait for my approval.
 
 The Skill will first run an environment check. When the environment is already usable, it will simply reuse the existing one; only when the compiler is missing or the template validation fails will it propose an installation or repair plan. On success, it will write the absolute paths for `lualatex` and `xelatex` into the shared state file listed in the table above.
 
@@ -261,83 +261,83 @@ If the same system account has already been configured previously by Codex, Clau
 If the user has already installed LaTeX on their own, the compiler paths can be registered explicitly. Windows PowerShell example:
 
 ```powershell
-python "$env:USERPROFILE\Documents\JobMatchFlowAgent\plugins\jobmatchflow\skills\jobmatchflow-materials-setup\scripts\materials_doctor.py" --smoke --write-state --lualatex "D:\TeX\bin\lualatex.exe" --xelatex "D:\TeX\bin\xelatex.exe"
+python "$env:USERPROFILE\Documents\JobfishingAgent\plugins\jobfishing\skills\jobfishing-materials-setup\scripts\materials_doctor.py" --smoke --write-state --lualatex "D:\TeX\bin\lualatex.exe" --xelatex "D:\TeX\bin\xelatex.exe"
 ```
 
 macOS example:
 
 ```bash
-python3 "$HOME/Documents/JobMatchFlowAgent/plugins/jobmatchflow/skills/jobmatchflow-materials-setup/scripts/materials_doctor.py" --smoke --write-state --lualatex "/custom/tex/bin/lualatex" --xelatex "/custom/tex/bin/xelatex"
+python3 "$HOME/Documents/JobfishingAgent/plugins/jobfishing/skills/jobfishing-materials-setup/scripts/materials_doctor.py" --smoke --write-state --lualatex "/custom/tex/bin/lualatex" --xelatex "/custom/tex/bin/xelatex"
 ```
 
 Linux example:
 
 ```bash
-python3 "$HOME/JobMatchFlowAgent/plugins/jobmatchflow/skills/jobmatchflow-materials-setup/scripts/materials_doctor.py" --smoke --write-state --lualatex "/custom/tex/bin/lualatex" --xelatex "/custom/tex/bin/xelatex"
+python3 "$HOME/JobfishingAgent/plugins/jobfishing/skills/jobfishing-materials-setup/scripts/materials_doctor.py" --smoke --write-state --lualatex "/custom/tex/bin/lualatex" --xelatex "/custom/tex/bin/xelatex"
 ```
 
 Do not put `environment.json` inside a Project, the plugin directory, or the Claude Code cache directory. Each different computer and each different system account needs its own separate configuration; WSL and a native Windows environment are also treated as two separate environments. Windows users should continue to use native Claude Code to connect to Chrome.
 
 ### Choosing a Materials Path Before Each Job
 
-JobMatchFlow has two materials paths. The user needs to tell Claude Code explicitly whether this particular job requires a tailored resume.
+jobfishing has two materials paths. The user needs to tell Claude Code explicitly whether this particular job requires a tailored resume.
 
 #### Path A: No Tailored Resume Needed
 
-Simply call `/jobmatchflow:jobmatchflow-apply`. Claude Code selects the most suitable resume from those already in the App, while also generating a standard DOCX Cover Letter locally through the full quality process, saving it via MCP, and then using that same local file to submit the application. Do not call `jobmatchflow-tailor`, and LaTeX is not required.
+Simply call `/jobfishing:jobfishing-apply`. Claude Code selects the most suitable resume from those already in the App, while also generating a standard DOCX Cover Letter locally through the full quality process, saving it via MCP, and then using that same local file to submit the application. Do not call `jobfishing-tailor`, and LaTeX is not required.
 
 Prompt:
 
-> /jobmatchflow:jobmatchflow-apply This job does not need a tailored resume — please choose the most suitable resume from the App's existing resumes; do not re-upload a resume. Generate a DOCX Cover Letter locally following the standard quality process, save it via MCP, and use that same file to fill out the application. Do not operate the JobMatchFlow front end; stop before the final submit button.
+> /jobfishing:jobfishing-apply This job does not need a tailored resume — please choose the most suitable resume from the App's existing resumes; do not re-upload a resume. Generate a DOCX Cover Letter locally following the standard quality process, save it via MCP, and use that same file to fill out the application. Do not operate the jobfishing front end; stop before the final submit button.
 
 #### Path B: Tailored Resume Needed
 
-First call `/jobmatchflow:jobmatchflow-tailor`. This Skill generates and validates two LaTeX PDFs at the same time: a tailored CV and a tailored Cover Letter. It will not generate only the CV, nor will it submit the application directly.
+First call `/jobfishing:jobfishing-tailor`. This Skill generates and validates two LaTeX PDFs at the same time: a tailored CV and a tailored Cover Letter. It will not generate only the CV, nor will it submit the application directly.
 
 First-step prompt:
 
-> /jobmatchflow:jobmatchflow-tailor Generate a tailored CV and a tailored Cover Letter for "Company Name + Job Title" in JobMatchFlow. Base it on the most suitable existing resume in the App, complete fact-checking, review, LaTeX rendering, and PDF validation, and upload the results back to JobMatchFlow. Do not submit the application after the materials are done.
+> /jobfishing:jobfishing-tailor Generate a tailored CV and a tailored Cover Letter for "Company Name + Job Title" in jobfishing. Base it on the most suitable existing resume in the App, complete fact-checking, review, LaTeX rendering, and PDF validation, and upload the results back to jobfishing. Do not submit the application after the materials are done.
 
-Once both materials have been uploaded successfully, call `/jobmatchflow:jobmatchflow-apply`:
+Once both materials have been uploaded successfully, call `/jobfishing:jobfishing-apply`:
 
-> /jobmatchflow:jobmatchflow-apply Continue with "Company Name + Job Title" for which the tailored materials were just completed. Use the uploaded tailored CV and tailored Cover Letter to fill out the application, and stop before the final submit button.
+> /jobfishing:jobfishing-apply Continue with "Company Name + Job Title" for which the tailored materials were just completed. Use the uploaded tailored CV and tailored Cover Letter to fill out the application, and stop before the final submit button.
 
 If the user wants to complete both steps in one continuous task, they can also state it in a single message:
 
-> First use /jobmatchflow:jobmatchflow-tailor to generate and upload two tailored materials for "Company Name + Job Title"; once validation is complete, use /jobmatchflow:jobmatchflow-apply to continue filling out the application, and stop before the final submit button.
+> First use /jobfishing:jobfishing-tailor to generate and upload two tailored materials for "Company Name + Job Title"; once validation is complete, use /jobfishing:jobfishing-apply to continue filling out the application, and stop before the final submit button.
 
-`jobmatchflow-tailor` will first check the shared LaTeX environment. When the environment is already usable, it reuses it directly; only when the check fails does it move on to `/jobmatchflow:jobmatchflow-materials-setup` — there's no need to manually reconfigure it for every job.
+`jobfishing-tailor` will first check the shared LaTeX environment. When the environment is already usable, it reuses it directly; only when the check fails does it move on to `/jobfishing:jobfishing-materials-setup` — there's no need to manually reconfigure it for every job.
 
 ### Optional: A Faster Path for a Quick Pass
 
-`/jobmatchflow:jobmatchflow-apply-fast` is a leaner sibling of `jobmatchflow-apply` for when the user just wants to get through one job, or a handful, quickly — it is not a replacement for the standard entry point. It picks one resume for the whole pass instead of re-deliberating per job, uploads that resume first on any ATS that can parse and autofill from it, drafts and self-reviews the Cover Letter inline instead of dispatching a separate reviewer, and still stops before the final submit button unless direct submission is already on. LinkedIn Easy Apply routing (official posting first, verified email before or alongside Easy Apply) is not shortened in this path.
+`/jobfishing:jobfishing-apply-fast` is a leaner sibling of `jobfishing-apply` for when the user just wants to get through one job, or a handful, quickly — it is not a replacement for the standard entry point. It picks one resume for the whole pass instead of re-deliberating per job, uploads that resume first on any ATS that can parse and autofill from it, drafts and self-reviews the Cover Letter inline instead of dispatching a separate reviewer, and still stops before the final submit button unless direct submission is already on. LinkedIn Easy Apply routing (official posting first, verified email before or alongside Easy Apply) is not shortened in this path.
 
-> /jobmatchflow:jobmatchflow-apply-fast Use my resume #2 for this pass. Process these three Saved jobs; stop before the final submit button on each.
+> /jobfishing:jobfishing-apply-fast Use my resume #2 for this pass. Process these three Saved jobs; stop before the final submit button on each.
 
 ## 8. First Trial Submission
 
 For the first time, it's recommended to process only a single job and stop before the final submission.
 
-First, place a test job into `Saved` in JobMatchFlow, then send:
+First, place a test job into `Saved` in jobfishing, then send:
 
-> /jobmatchflow:jobmatchflow-apply First sync the job-search inbox, then process one job from Saved. This test does not need a tailored resume: use the most suitable existing resume in the App and generate a standard DOCX Cover Letter; stop before the final submit button — do not submit.
+> /jobfishing:jobfishing-apply First sync the job-search inbox, then process one job from Saved. This test does not need a tailored resume: use the most suitable existing resume in the App and generate a standard DOCX Cover Letter; stop before the final submit button — do not submit.
 
 Claude Code should:
 
 1. Read the job-search inbox from where it left off last time;
-2. Summarize new recruiting emails and update JobMatchFlow;
+2. Summarize new recruiting emails and update jobfishing;
 3. Check whether the job has already been applied to;
 4. Read Basic Info, Experience, and application Q&A from this round's cache;
 5. Select the appropriate resume slot;
 6. Fill out the ATS using the original-named resume from the local temporary directory;
 7. Generate any application Q&A that's needed;
-8. Generate and check a DOCX Cover Letter locally following the standard quality process, upload it to JobMatchFlow via MCP, and keep that same local file;
-9. Upload the local resume and this local DOCX directly to the ATS; the standard workflow must not re-upload the resume back to JobMatchFlow, nor download the Cover Letter through the JobMatchFlow front end;
+8. Generate and check a DOCX Cover Letter locally following the standard quality process, upload it to jobfishing via MCP, and keep that same local file;
+9. Upload the local resume and this local DOCX directly to the ATS; the standard workflow must not re-upload the resume back to jobfishing, nor download the Cover Letter through the jobfishing front end;
 10. Stop before the final submit button so the user can review it.
 
 After confirming everything looks correct, send:
 
-> Go ahead and submit, and update JobMatchFlow once you've confirmed success.
+> Go ahead and submit, and update jobfishing once you've confirmed success.
 
 Claude Code must see a success confirmation page or a sent email before it can mark the job as submitted.
 
@@ -345,7 +345,7 @@ Claude Code must see a success confirmation page or a sent email before it can m
 
 After the first trial submission succeeds, you can send:
 
-> /jobmatchflow:jobmatchflow-apply First sync the job-search inbox for everything after the last cutoff point, then process all Saved jobs for this round. Direct submission is enabled; stop and ask me when you hit a CAPTCHA, MFA, a legal disclaimer, conflicting data, or a fact you can't determine.
+> /jobfishing:jobfishing-apply First sync the job-search inbox for everything after the last cutoff point, then process all Saved jobs for this round. Direct submission is enabled; stop and ask me when you hit a CAPTCHA, MFA, a legal disclaimer, conflicting data, or a fact you can't determine.
 
 Even with direct submission enabled, Claude Code should still pause in the following situations:
 
@@ -364,7 +364,7 @@ The user does not need to reinstall the plugin or re-copy resumes.
 
 Each time, you only need to:
 
-1. Update your profile, resumes, and Saved jobs in JobMatchFlow;
+1. Update your profile, resumes, and Saved jobs in jobfishing;
 2. Go into the same Job Applications directory;
 3. Run `claude --chrome`;
 4. Start a new task or clean up into a fresh round;
@@ -374,13 +374,13 @@ Each time, you only need to:
 
 A commonly used prompt:
 
-> /jobmatchflow:jobmatchflow-apply My JobMatchFlow profile and resumes have been updated. First sync the job-search inbox, then process all Saved jobs for this round. Direct submission is enabled; stop and ask me whenever something needs my personal confirmation or action.
+> /jobfishing:jobfishing-apply My jobfishing profile and resumes have been updated. First sync the job-search inbox, then process all Saved jobs for this round. Direct submission is enabled; stop and ask me whenever something needs my personal confirmation or action.
 
-The batch prompt above uses, by default, the App's existing resumes and a standard DOCX Cover Letter. If a particular job needs a tailored resume, run `/jobmatchflow:jobmatchflow-tailor` separately for that job first, and only hand it to `/jobmatchflow:jobmatchflow-apply` once both tailored materials are complete.
+The batch prompt above uses, by default, the App's existing resumes and a standard DOCX Cover Letter. If a particular job needs a tailored resume, run `/jobfishing:jobfishing-tailor` separately for that job first, and only hand it to `/jobfishing:jobfishing-apply` once both tailored materials are complete.
 
 ## 11. This Round's Cache Rules
 
-At the start of each round, Claude Code refreshes JobMatchFlow exactly once, and caches:
+At the start of each round, Claude Code refreshes jobfishing exactly once, and caches:
 
 - Basic Info;
 - Experience;
@@ -391,9 +391,9 @@ At the start of each round, Claude Code refreshes JobMatchFlow exactly once, and
 
 The same round of submissions reuses this cache, without re-downloading resumes for every job.
 
-If the user modifies JobMatchFlow partway through, they must explicitly tell Claude Code:
+If the user modifies jobfishing partway through, they must explicitly tell Claude Code:
 
-> I just updated JobMatchFlow — please refresh this round's cache and continue.
+> I just updated jobfishing — please refresh this round's cache and continue.
 
 The temporary cache is cleared once the task ends. It gets reconfirmed and refreshed again next round.
 
@@ -401,19 +401,19 @@ The temporary cache is cleared once the task ends. It gets reconfirmed and refre
 
 - Personal information on the form always follows Basic Info;
 - A resume is an uploaded file, not the final source of truth for personal information on the form;
-- JobMatchFlow's internal upload name, storage name, and download cache name may carry internal prefixes — the App is not required to be renamed for this;
+- jobfishing's internal upload name, storage name, and download cache name may carry internal prefixes — the App is not required to be renamed for this;
 - Before actually uploading to the ATS or attaching to an email, the Agent must create a clean submission copy in this round's local directory — numbers, hashes, UUIDs, timestamps, database keys, or storage prefixes must never be exposed to the employer;
 - For a standard resume, restore the user-visible original name where possible; when no reliable name is available, use "Name - CV.extension". A tailored resume uses "Name - CV - Company.extension", and the Cover Letter uses "Name - Cover Letter - Company.extension";
 - The Agent does not modify the App's internal files — it only copies them to a clean file name; after the ATS or email shows the attachment, double-check it again. If a dirty file name is still shown, delete the attachment and re-upload a clean copy before submitting;
 - The current version supports explicitly invoked tailored CVs and Cover Letters; a standard application does not automatically enter the tailoring flow;
-- When not tailoring a resume, only call `/jobmatchflow:jobmatchflow-apply`: the existing App resume stays read-only, the standard Cover Letter is generated locally as a DOCX, uploaded via MCP, and that same local file is used directly for the application;
-- When tailoring a resume, first call `/jobmatchflow:jobmatchflow-tailor`: a tailored CV PDF plus a tailored Cover Letter PDF; only call `/jobmatchflow:jobmatchflow-apply` after the upload and validation are complete;
-- `/jobmatchflow:jobmatchflow-tailor` is not responsible for submitting the application; `/jobmatchflow:jobmatchflow-materials-setup` is used only when the LaTeX environment check fails;
+- When not tailoring a resume, only call `/jobfishing:jobfishing-apply`: the existing App resume stays read-only, the standard Cover Letter is generated locally as a DOCX, uploaded via MCP, and that same local file is used directly for the application;
+- When tailoring a resume, first call `/jobfishing:jobfishing-tailor`: a tailored CV PDF plus a tailored Cover Letter PDF; only call `/jobfishing:jobfishing-apply` after the upload and validation are complete;
+- `/jobfishing:jobfishing-tailor` is not responsible for submitting the application; `/jobfishing:jobfishing-materials-setup` is used only when the LaTeX environment check fails;
 - The standard workflow never re-uploads a resume; only the tailoring workflow may upload the tailored resume and use `resume_choice="tailored"`;
-- Any Cover Letter generated by the Agent must be rendered and validated locally before being uploaded back to JobMatchFlow via MCP; it must not be re-downloaded while the local file still exists;
-- The Agent must not operate the JobMatchFlow front end through the browser, including reading data, modifying fields, or uploading/downloading files; all App business operations go strictly through MCP. The device authorization page is opened and confirmed by the user personally;
+- Any Cover Letter generated by the Agent must be rendered and validated locally before being uploaded back to jobfishing via MCP; it must not be re-downloaded while the local file still exists;
+- The Agent must not operate the jobfishing front end through the browser, including reading data, modifying fields, or uploading/downloading files; all App business operations go strictly through MCP. The device authorization page is opened and confirmed by the user personally;
 - `resume_choice` only records which resume slot was used; it does not re-upload the resume file;
-- Reusable Q&A can be saved back to JobMatchFlow, and the user can edit it from the front end.
+- Reusable Q&A can be saved back to jobfishing, and the user can edit it from the front end.
 
 ## 13. Email Workflow
 
@@ -422,7 +422,7 @@ Claude Code uses the web-based email accounts already logged into the current Ch
 - Gmail or Google Workspace: <https://mail.google.com/>
 - Outlook, Hotmail, Live, or Microsoft 365: <https://outlook.live.com/mail/>
 
-Email is used to read company replies, verification codes, ATS confirmation links, and interview invitations, and also for direct email applications and for updating JobMatchFlow based on replies.
+Email is used to read company replies, verification codes, ATS confirmation links, and interview invitations, and also for direct email applications and for updating jobfishing based on replies.
 
 Each round continues from where it left off last time, without reprocessing the entire email history.
 
@@ -463,7 +463,7 @@ Every Blocked job should include a clear next step.
 
 ## 15. Frequently Asked Questions
 
-### `/jobmatchflow:jobmatchflow-apply` Isn't Recognized
+### `/jobfishing:jobfishing-apply` Isn't Recognized
 
 Run:
 
@@ -473,9 +473,9 @@ Run:
 
 Check whether the plugin is Installed, Enabled, and whether there are any errors under Errors. After installing or updating, run `/reload-plugins`, and if necessary, quit and restart Claude Code.
 
-### The JobMatchFlow MCP Fails to Start
+### The jobfishing MCP Fails to Start
 
-Check whether `jobmatchflow-mcp` is on the PATH; if it can't be found, go back to the unzipped directory and re-run the Python install command.
+Check whether `jobfishing-mcp` is on the PATH; if it can't be found, go back to the unzipped directory and re-run the Python install command.
 
 You can also use `claude --debug` to view MCP initialization errors.
 
@@ -501,7 +501,7 @@ It's not inherently a bug that the App's download cache name carries an internal
 
 Send:
 
-> I just updated JobMatchFlow — please refresh this round's cache, remove the outdated content from the current form, and refill it using the latest Basic Info before continuing.
+> I just updated jobfishing — please refresh this round's cache, remove the outdated content from the current form, and refill it using the latest Basic Info before continuing.
 
 ### A Page Requires a Verification Code, CAPTCHA, or Legal Confirmation
 
@@ -509,7 +509,7 @@ The user handles it personally in the visible Chrome page, then tells Claude Cod
 
 ### Codex Already Set Up LaTeX, but Claude Code Still Says It Can't Find It
 
-Confirm both Agents are using the same system account, and check whether the shared state file exists. Have Claude Code run the `jobmatchflow-materials-setup` environment check once; the checker reads the saved absolute compiler paths and does not depend on Claude Code's current `PATH`. If it's running on a different computer, a different system account, or in WSL, it needs to be configured separately in that environment.
+Confirm both Agents are using the same system account, and check whether the shared state file exists. Have Claude Code run the `jobfishing-materials-setup` environment check once; the checker reads the saved absolute compiler paths and does not depend on Claude Code's current `PATH`. If it's running on a different computer, a different system account, or in WSL, it needs to be configured separately in that environment.
 
 ### The User Wants to Install LaTeX Somewhere Else
 
@@ -533,14 +533,14 @@ This is not a 24-hour monitoring task. Claude Code only works when the user acti
 
 | Skill | When to Use | Main Actions | What Gets Saved |
 | --- | --- | --- | --- |
-| `/jobmatchflow:jobmatchflow-rank` | To filter the Job List or add suitable jobs to Saved | First time: multi-round questions about job-search preferences; afterward: confirm preferences first, then filter using App scores, the full JD, and match details | Confirmed preferences are saved to Experience Agent Q&A; Saved is modified when the user requests it |
-| `/jobmatchflow:jobmatchflow-apply` | Configuration checks, syncing the inbox, filling out the ATS, applying via company site/email/Easy Apply | Selects existing or tailored materials, operates Chrome, updates the Application after submission | Cover Letter, application status, complete submission records, original company link, and email/recruiting feedback are written to the App |
-| `/jobmatchflow:jobmatchflow-apply-fast` | A quick one-job or small-batch pass once setup is already done | Same as `apply`, but with one resume for the whole pass, ATS resume-parse autofill first, and an inline self-reviewed Cover Letter instead of a dispatched reviewer | Same write-back as `apply`; still stops before the final submit button |
-| `/jobmatchflow:jobmatchflow-cover-letter-fast` | Just want a Cover Letter, not a full application | Drafts and self-reviews one job-specific Cover Letter inline, renders a verified local DOCX, uploads to JobMatchFlow only on request | Nothing until the user asks to save it; no resume choice, no ATS, no browser |
-| `/jobmatchflow:jobmatchflow-tailor` | The user explicitly requests a tailored resume or tailored materials | Generates, reviews, renders, and uploads a tailored CV and a tailored Cover Letter for one job at the same time | Both final PDFs are uploaded to that Job; not responsible for submitting the application |
-| `/jobmatchflow:jobmatchflow-materials-setup` | First-time setup of the tailored-materials environment, or when the LaTeX doctor check fails | Installs/repairs and validates the shared LaTeX environment | Only saves local machine/user-level LaTeX state and templates; does not modify JobMatchFlow data |
-| `/jobmatchflow:jobmatchflow-insights` | To analyze the application funnel, conversion rate, job strategy, or outcome feedback | Reads existing Jobs, Applications, scores, stages, and Notes to perform analysis | Read-only by default; does not modify the App |
-| `/jobmatchflow:jobmatchflow-interview` | An Application has reached the interview stage and needs targeted preparation | Reads the frozen JD, the actual CV/CL, submitted answers, email timeline, and feedback, and generates interview prep | Full prep is saved locally; after the user reviews it, a brief summary of experience and feedback can be appended to the Application Notes |
+| `/jobfishing:jobfishing-rank` | To filter the Job List or add suitable jobs to Saved | First time: multi-round questions about job-search preferences; afterward: confirm preferences first, then filter using App scores, the full JD, and match details | Confirmed preferences are saved to Experience Agent Q&A; Saved is modified when the user requests it |
+| `/jobfishing:jobfishing-apply` | Configuration checks, syncing the inbox, filling out the ATS, applying via company site/email/Easy Apply | Selects existing or tailored materials, operates Chrome, updates the Application after submission | Cover Letter, application status, complete submission records, original company link, and email/recruiting feedback are written to the App |
+| `/jobfishing:jobfishing-apply-fast` | A quick one-job or small-batch pass once setup is already done | Same as `apply`, but with one resume for the whole pass, ATS resume-parse autofill first, and an inline self-reviewed Cover Letter instead of a dispatched reviewer | Same write-back as `apply`; still stops before the final submit button |
+| `/jobfishing:jobfishing-cover-letter-fast` | Just want a Cover Letter, not a full application | Drafts and self-reviews one job-specific Cover Letter inline, renders a verified local DOCX, uploads to jobfishing only on request | Nothing until the user asks to save it; no resume choice, no ATS, no browser |
+| `/jobfishing:jobfishing-tailor` | The user explicitly requests a tailored resume or tailored materials | Generates, reviews, renders, and uploads a tailored CV and a tailored Cover Letter for one job at the same time | Both final PDFs are uploaded to that Job; not responsible for submitting the application |
+| `/jobfishing:jobfishing-materials-setup` | First-time setup of the tailored-materials environment, or when the LaTeX doctor check fails | Installs/repairs and validates the shared LaTeX environment | Only saves local machine/user-level LaTeX state and templates; does not modify jobfishing data |
+| `/jobfishing:jobfishing-insights` | To analyze the application funnel, conversion rate, job strategy, or outcome feedback | Reads existing Jobs, Applications, scores, stages, and Notes to perform analysis | Read-only by default; does not modify the App |
+| `/jobfishing:jobfishing-interview` | An Application has reached the interview stage and needs targeted preparation | Reads the frozen JD, the actual CV/CL, submitted answers, email timeline, and feedback, and generates interview prep | Full prep is saved locally; after the user reviews it, a brief summary of experience and feedback can be appended to the Application Notes |
 
 Common combinations:
 
@@ -555,4 +555,4 @@ Filter jobs: rank
 → Reviewing progress later: insights
 ```
 
-`rank`, `tailor`, `insights`, and `interview` are all additional features invoked separately whenever the user needs them. The main entry point for standard applications is `/jobmatchflow:jobmatchflow-apply`; reach for `/jobmatchflow:jobmatchflow-apply-fast` only when the user explicitly wants a quicker pass through one or a few jobs.
+`rank`, `tailor`, `insights`, and `interview` are all additional features invoked separately whenever the user needs them. The main entry point for standard applications is `/jobfishing:jobfishing-apply`; reach for `/jobfishing:jobfishing-apply-fast` only when the user explicitly wants a quicker pass through one or a few jobs.

@@ -5,10 +5,10 @@
   },
   "plugins": [
     {
-      "name": "jobmatchflow",
+      "name": "jobfishing",
       "source": {
         "source": "local",
-        "path": "./plugins/jobmatchflow"
+        "path": "./plugins/jobfishing"
       },
       "policy": {
         "installation": "AVAILABLE",

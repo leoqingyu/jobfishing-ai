@@ -1,9 +1,0 @@
-name = "default-jobmatchflow-cv"
-version = "1.0.0"
-material_type = "resume"
-engine = "lualatex"
-entrypoint = "resume.tex"
-output_format = "pdf"
-min_pages = 1
-max_pages = 2
-shell_escape = false

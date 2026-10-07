@@ -1,9 +1,0 @@
-name = "default-jobmatchflow-cover-letter"
-version = "1.0.0"
-material_type = "cover_letter"
-engine = "xelatex"
-entrypoint = "cover-letter.tex"
-output_format = "pdf"
-min_pages = 1
-max_pages = 1
-shell_escape = false
