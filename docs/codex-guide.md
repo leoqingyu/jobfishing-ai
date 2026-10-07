@@ -1,5 +1,8 @@
 # jobfishing × Codex — Full User Workflow
 
+> **Note:** the one-line install in the [README](../README.md#install) is now the simple way to set jobfishing up, and the README's "How to use it" section is the quick start. This guide is the long, manual version (download, unzip, install as a plugin). The steps after installation are the same either way.
+
+
 This document guides users through the first-time connection of jobfishing, Codex, and Chrome, and through the ongoing usage pattern of "open once, submit a batch, end the task."
 
 jobfishing is the source of truth for candidate profile, resume, jobs, Q&A, and application status. Codex is responsible for reading this data, operating Gmail, Outlook Web, and job-board sites through the Chrome browser already logged in on the user's own machine, and writing the results back to jobfishing once applications are submitted.

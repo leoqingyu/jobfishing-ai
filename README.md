@@ -7,6 +7,47 @@ Two ways in, and they work together:
 - **No account, fully local.** Crawl jobs for any market (Hong Kong, UK, US...) into a SQLite database on your machine (listing first, then the text of the jobs worth it, gently, since there is no proxy), have your agent score many at once, and get ranked recommendations on a small local dashboard. Nothing leaves your computer except the job searches.
 - **With a jobfishing account.** jobfishing already crawls Switzerland, Luxembourg, Frankfurt, Munich, Stuttgart, Amsterdam and Rotterdam, scores them for you, and keeps your profile, resumes, saved answers and application status. Your agent reads and writes that data only through the bundled MCP server, and only touches Gmail, Outlook Web and job boards through your own already-logged-in Chrome, never a hidden or headless browser. Your local jobs and the jobfishing list are ranked together on one scale.
 
+## How to use it
+
+Everything below is a sentence you paste into Codex or Claude Code. You never run jobfishing yourself.
+
+### What it can do
+
+| You want to... | Say something like | Needs a jobfishing account? | One-time setup |
+| --- | --- | --- | --- |
+| Find jobs in any market and rank them | "Use $jobfishing-rank to find data engineer jobs in Hong Kong from the last 3 days" | No | None |
+| See and manage them on a page | "Open the jobfishing dashboard" | No | None |
+| Score against your full profile | (asked for automatically when you are signed in) | Yes | Fill in your profile in the app |
+| Keep the best ones in the app | "Save the top 10 to my jobfishing account" | Yes | Sign in once |
+| Tailor a CV and cover letter | "Use $jobfishing-tailor for the Acme data engineer job" | Yes | Install LaTeX once (`$jobfishing-materials-setup` does it with you) |
+| A quick cover letter only | "Use $jobfishing-cover-letter-fast for the Acme job" | Yes | None |
+| Apply, and read your inbox | "Use $jobfishing-apply to go through my Saved jobs" | Yes | Your agent's Chrome connection (below) |
+| See what is working | "Use $jobfishing-insights on my applications" | Yes | None |
+| Prepare for an interview | "Use $jobfishing-interview for my Acme interview" | Yes | None |
+
+### A first run, step by step
+
+Paste these in order, one message each.
+
+1. **Crawl.** "Use $jobfishing-rank. Crawl data engineer, data platform engineer and analytics engineer jobs in Hong Kong, posted in the last 3 days." It fetches the listings in seconds. LinkedIn jobs arrive as titles only; Indeed jobs arrive complete.
+2. **Fetch the job texts.** "From the titles, pick the LinkedIn jobs worth scoring (skip irrelevant ones and duplicates) and fetch their text." It fetches a few at a time on purpose. If LinkedIn starts limiting your connection, it stops and tells you to wait a few minutes. jobfishing's own job list (Switzerland, Luxembourg, Frankfurt, Munich, Stuttgart, Amsterdam, Rotterdam) is not limited that way.
+3. **Score.** "Score the jobs that have their text. Use my jobfishing profile if I'm signed in, otherwise my CV at `C:\path\to\cv.pdf`." Many jobs are scored at once. The profile jobfishing keeps is more complete than a single CV; a CV works too.
+4. **Look at the results.** "Open the jobfishing dashboard." The Recommended tab ranks your local jobs and, when you are signed in, your jobfishing jobs, on one scale. Click a job for the score breakdown and the posting.
+5. **Keep the good ones.** In the dashboard click **Save to jobfishing...**, tick the jobs, and paste the prompt it gives you into your agent. They appear in your jobfishing Saved list with their scores, private to you.
+6. **Start the next batch clean.** When you have finished with this batch, click **Clear all jobs** in the dashboard. It asks first. The jobs disappear from the page; the rows stay in the database file but stay hidden. Then go back to step 1.
+7. **Go from found to applied** (needs a jobfishing account): "Use $jobfishing-tailor for the top job in my Saved list", then "Use $jobfishing-apply to apply to my Saved jobs" and "Use $jobfishing-apply to check my inbox and update my application statuses".
+
+The dashboard also shows ready-made prompts at the right moments: one when jobs are waiting to be scored, one after a crawl when some jobs have only a title, and one for saving.
+
+### What you need to set up, and what you do not
+
+You do **not** follow an install guide, unzip anything, or install Python. The one-line install does everything, and `uv` fetches whatever the tools need.
+
+- **LaTeX, only for tailored CVs.** Say "Use $jobfishing-materials-setup". It checks your machine, and if there is no LaTeX it walks you through installing one (TinyTeX or MiKTeX) and tests it with the bundled templates. Do it once per computer. Cover letters from `$jobfishing-cover-letter-fast` are Word files and need nothing.
+- **A Chrome connection, only for applying and reading your inbox.** In Codex use the ChatGPT Chrome integration; in Claude Code run `/chrome` and approve Claude in Chrome. jobfishing drives your own, visible, already-logged-in Chrome and never a hidden browser.
+- **Your profile in the app, only to improve scores.** Without one, scoring uses your CV.
+- Your local jobs live in `~/.jobfishing/` (on Windows `%USERPROFILE%\.jobfishing\`).
+
 ## Skills
 
 | Skill | What it does |
