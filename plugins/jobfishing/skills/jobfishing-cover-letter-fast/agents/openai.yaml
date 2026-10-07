@@ -1,0 +1,14 @@
+interface:
+  display_name: "jobfishing Cover Letter Fast"
+  short_description: "One truthful cover letter as a Word file, fast"
+  brand_color: "#2563EB"
+  default_prompt: "Use $jobfishing-cover-letter-fast to write one truthful cover letter for this job as a local Word file."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "jobfishing"
+      description: "jobfishing jobs, candidate data and the experience library"
+
+policy:
+  allow_implicit_invocation: false

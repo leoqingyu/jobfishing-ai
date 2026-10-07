@@ -1,0 +1,14 @@
+interface:
+  display_name: "jobfishing Apply Fast"
+  short_description: "A quick one-job or small-batch application pass"
+  brand_color: "#2563EB"
+  default_prompt: "Use $jobfishing-apply-fast to apply to this job quickly: one resume for the batch, ATS autofill, and stop before the final submit."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "jobfishing"
+      description: "jobfishing jobs, candidate data, resumes, answers, and application tracking"
+
+policy:
+  allow_implicit_invocation: false
