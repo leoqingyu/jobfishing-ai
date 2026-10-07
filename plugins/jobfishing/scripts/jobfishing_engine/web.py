@@ -141,6 +141,21 @@ def _make_handler(port: int, hosted_fetch):
     return H
 
 
+def _cached(fetch, ttl: float = 60.0):
+    """The jobfishing list can be thousands of rows; the dashboard asks for it on every tab switch, so keep it for a minute.
+    A failed fetch is not cached, so signing in takes effect on the next click."""
+    state: dict = {"at": 0.0, "value": None}
+
+    def wrapper():
+        if state["value"] is not None and time.monotonic() - state["at"] < ttl:
+            return state["value"]
+        value = fetch()
+        state.update(at=time.monotonic(), value=value)
+        return value
+
+    return wrapper
+
+
 def serve(hosted_fetch=None, *, open_browser: bool = False) -> str:
     """Start the dashboard once per process (a daemon thread) and return its URL; later calls return the same URL."""
     global _server, _url
@@ -148,7 +163,7 @@ def serve(hosted_fetch=None, *, open_browser: bool = False) -> str:
         if _server is None:
             for port in PORTS:
                 try:
-                    srv = ThreadingHTTPServer(("127.0.0.1", port), _make_handler(port, hosted_fetch))
+                    srv = ThreadingHTTPServer(("127.0.0.1", port), _make_handler(port, _cached(hosted_fetch) if hosted_fetch else None))
                 except OSError:
                     continue
                 threading.Thread(target=srv.serve_forever, daemon=True).start()

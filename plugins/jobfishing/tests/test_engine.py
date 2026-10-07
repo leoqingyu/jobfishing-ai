@@ -240,3 +240,19 @@ def test_ready_jobs_filter_and_dashboard_prompt_uses_the_jobfishing_profile():
     assert len(store.list_jobs(has_description=False)) == 2
     p = web._agent_prompt(store.counts()["ready"])
     assert "my 1 unscored" in p and "get_scoring_profile" in p and "fall back to my CV" in p
+
+
+def test_dashboard_caches_the_jobfishing_list_but_not_failures():
+    from jobfishing_engine import web
+    calls = []
+    def fetch():
+        calls.append(1)
+        if len(calls) == 1:
+            raise RuntimeError("not signed in")
+        return [{"id": 1, "score": 90, "decision": "generate"}]
+    f = web._cached(fetch, ttl=60)
+    try:
+        f()
+    except RuntimeError:
+        pass
+    assert f()[0]["id"] == 1 and f()[0]["id"] == 1 and len(calls) == 2      # the failure was retried, the success was kept
