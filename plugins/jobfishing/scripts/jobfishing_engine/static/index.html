@@ -82,6 +82,7 @@ pre.desc{white-space:pre-wrap;word-wrap:break-word;font:13.5px/1.55 var(--sans);
 .m-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;flex-wrap:wrap}
 #crawlNext{margin-top:14px;background:var(--amber-tint);border:1px solid #efdca8;border-radius:12px;padding:12px 14px;font-size:14px;max-width:640px}
 #crawlNext p{margin:0 0 8px}
+#p-crawl .note{margin-top:16px}
 .scrim{position:fixed;inset:0;background:rgba(14,14,12,.25);opacity:0;pointer-events:none;transition:opacity .2s;z-index:4}
 .scrim.open{opacity:1;pointer-events:auto}
 @media(max-width:640px){.row{grid-template-columns:48px 1fr}.row .badge{display:none}.form .two{grid-template-columns:1fr}}
@@ -190,7 +191,7 @@ function counts(){return api("/api/counts").then(function(c){
   $("banner").hidden=parts.length===0;$("bannerText").textContent=parts.join("; ")+". Copy the matching prompt and paste it into your agent.";
   $("copyPrompt").hidden=c.ready===0;$("copyFetch").hidden=c.no_description===0;
   $("crawlNext").hidden=c.no_description===0;
-  $("crawlNextText").textContent=c.no_description+" crawled job"+(c.no_description===1?" has":"s have")+" only a title so far, no job text, so they cannot be scored yet. Your agent can look at the titles, pick the ones worth scoring and fetch their text: paste this prompt into it.";
+  $("crawlNextText").textContent=c.no_description+" crawled job"+(c.no_description===1?" has":"s have")+" only a title so far, no job text, so "+(c.no_description===1?"it cannot":"they cannot")+" be scored yet. Your agent can look at the titles, pick the ones worth scoring and fetch their text: paste this prompt into it.";
   return c})}
 var recRows=[],lastJobs=0;
 function localRecs(){return recRows.filter(function(j){return j.source==="local"})}
