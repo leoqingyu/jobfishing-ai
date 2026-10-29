@@ -4,6 +4,7 @@ Run this check without submitting applications or sending email.
 
 1. Confirm that the `jobfishing` MCP tools are available.
 2. If authorization is missing, call `start_device_authorization`, show the verification link and code to the user, and finish only after the user approves it.
+   Authorization is done once, on the main site, and also covers the VIP site. If the user says they work on VIP, call `use_site("vip")` before the steps below; with no mention, stay on the main site.
 3. Ask the user to confirm that Basic Info, Experience, and resume files in jobfishing are current.
 4. After confirmation, call `refresh_application_cache` once. Confirm that it returns local snapshot paths and one local file per available resume.
 5. Confirm each cached resume is readable and has enough logical metadata to prepare a clean employer-facing copy. The internal cache basename may contain a storage prefix; that alone is not a failure.

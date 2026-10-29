@@ -28,6 +28,7 @@ Load only the reference needed for the current request. A full application sessi
 ## Core invariants
 
 - If jobfishing is not authorized, call `start_device_authorization`, show the exact verification link and code, and call `finish_device_authorization` only after the user approves it.
+- jobfishing has two sites, the main site (default) and VIP. One authorization covers both. Work on the main site unless the user explicitly says to work on VIP; then call `use_site("vip")` first, and `use_site("main")` to go back. The sites keep separate jobs, tracking and resumes, so never reuse a job id across them. If VIP answers that the authorization is not accepted, the user probably has no VIP account: say so and offer to continue on the main site.
 - The device-authorization page is the only jobfishing webpage involved, and the user—not the Agent—opens and confirms it. The Agent must not control that page or any other jobfishing frontend page.
 - At the beginning of every new application pulse, ask the user to confirm that Basic Info, Experience, and resume files in jobfishing are current. After confirmation, call `refresh_application_cache` exactly once and use that snapshot throughout the pulse.
 - If the user says jobfishing data changed during the pulse, call `refresh_application_cache` again before continuing. Do not otherwise refresh repeatedly.

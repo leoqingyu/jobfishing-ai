@@ -23,8 +23,13 @@ import requests
 from mcp.server.mcpserver import MCPServer
 
 
-API_BASE = "https://app.jobfish.ing"
-AUTHORIZATION_PAGE = f"{API_BASE}/app/agent-authorize"
+# One authorization covers both sites: the token is issued by the main site and copied to VIP (hash only), so the same
+# token works on both. Authorization always happens on the main site; API_BASE is the site the tools talk to right now.
+SITES = {"main": "https://app.jobfish.ing", "vip": "https://vip.jobfish.ing"}
+MAIN_BASE = SITES["main"]
+API_BASE = MAIN_BASE
+current_site = "main"
+AUTHORIZATION_PAGE = f"{MAIN_BASE}/app/agent-authorize"
 # State lives in ~/.jobfishing; installs from before the rename keep using ~/.jobmatchflow so nobody is logged out.
 _STATE_DIR = Path.home() / ".jobfishing"
 _LEGACY_STATE_DIR = Path.home() / ".jobmatchflow"
@@ -120,6 +125,12 @@ def _call(method: str, path: str, **kwargs: Any) -> Any:
             "verification link and code to the user, then call finish_device_authorization."
         )
     response = session.request(method, f"{API_BASE}{path}", timeout=30, **kwargs)
+    if response.status_code == 401 and current_site != "main":
+        # The token is still good on the main site, so keep it. The VIP site only knows people who have a VIP account.
+        raise RuntimeError(
+            "The VIP site did not accept this authorization: this account probably has no VIP access, or the VIP site "
+            "has not received the token yet. Say so to the user and offer to continue on the main site (use_site('main'))."
+        )
     if response.status_code == 401:
         _clear_cached_token()
         _forget_token()
@@ -367,7 +378,7 @@ def start_device_authorization() -> dict[str, Any]:
         return {"already_authorized": True}
     label = f"{platform.node()} (jobfishing)"
     response = session.post(
-        f"{API_BASE}/api/v1/agent/device/start",
+        f"{MAIN_BASE}/api/v1/agent/device/start",
         json={"label": label},
         timeout=30,
     )
@@ -395,7 +406,7 @@ def finish_device_authorization() -> dict[str, Any]:
     if not pending_device_code:
         raise RuntimeError("Call start_device_authorization before finishing authorization")
     response = session.post(
-        f"{API_BASE}/api/v1/agent/device/poll",
+        f"{MAIN_BASE}/api/v1/agent/device/poll",
         json={"device_code": pending_device_code},
         timeout=30,
     )
@@ -409,6 +420,26 @@ def finish_device_authorization() -> dict[str, Any]:
     if status in {"denied", "expired", "delivered"}:
         pending_device_code = None
     return {"authorized": False, "status": status}
+
+
+@mcp.tool()
+def use_site(site: str = "main") -> dict[str, Any]:
+    """Choose which jobfishing site the tools talk to: "main" (the default, app.jobfish.ing) or "vip" (vip.jobfish.ing).
+
+    The two sites have separate job pools, profiles and tracking, and job ids do not carry over. Use "vip" only when the
+    user explicitly says to work on VIP; otherwise stay on "main". Switching drops the cached snapshot.
+    """
+    global API_BASE, current_site, cache_created_at, cache_dir
+    global cached_context, cached_jobs, cached_tracking, cached_resumes, cached_resume_files
+    key = (site or "").strip().lower()
+    if key not in SITES:
+        raise RuntimeError(f"Unknown site {site!r}; use one of: {', '.join(SITES)}")
+    if key != current_site:
+        cache_created_at = cache_dir = None
+        cached_context = cached_jobs = cached_tracking = cached_resumes = None
+        cached_resume_files = {}
+    API_BASE, current_site = SITES[key], key
+    return {"site": current_site, "api_base": API_BASE}
 
 
 @mcp.tool()
